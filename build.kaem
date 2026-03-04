@@ -1,3 +1,5 @@
 ./bin/hex0 ./src/hex1.hex0 ./bin/hex1
 ./bin/hex1 ./src/hex2.hex1 ./bin/hex2
-./bin/hex2 src/catm.hex2 ./bin/catm
+./bin/hex2 ./src/catm.hex2 ./bin/catm
+./bin/catm M0.hex2 ./src/ELF.hex2 ./src/M0.hex2
+./bin/hex2 M0.hex2 ./bin/M0

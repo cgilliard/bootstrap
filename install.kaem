@@ -1,4 +1,4 @@
 hex0 hex1_x86.hex0 hex1
 hex1 hex2_x86.hex1 hex2
 hex2 catm_x86.hex2 catm
-
+hex2 chmod700_x86.hex2 chmod700

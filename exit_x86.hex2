@@ -58,28 +58,13 @@
 :ELF_text
 
 :_start
-48 8B 74 24 10        # mov rsi, [rsp+16]   ; argv[1] = mode
+    58                          ; pop_eax                     # Get the number of arguments
+    5B                          ; pop_ebx                     # Get the program name
+    5B                          ; pop_ebx                     # Get the actual output name
 
-; argv[2] = path
-48 8B 7C 24 18        # mov rdi, [rsp+24]   ; argv[2] = path
+    ; Exit immediately (no file open, no loop)
+    B8 01 00 00 00              ; mov eax, 1 (sys_exit)
+    BB 04 00 00 00              ; mov ebx, 0 (status 0)
+    CD 80                       ; int 0x80
 
-# convert mode string (rsi) to integer (rax)
-48 31 C0              # xor rax, rax
-convert_loop:
-0F B6 0E              # movzx ecx, byte [rsi]
-84 C9                 # test cl, cl
-74 08                 # jz do_chmod
-83 E9 30              # sub ecx, '0'
-48 6B C0 08           # imul rax, rax, 8
-48 01 C8              # add rax, rcx
-48 FF C6              # inc rsi
-EB F0                 # jmp convert_loop
-
-do_chmod:
-B8 5A 00 00 00        # mov eax, 90 (chmod)
-0F 05                 # syscall
-
-# exit with status from chmod
-48 89 C7              # mov rdi, rax
-B8 3C 00 00 00        # mov eax, 60 (exit)
-0F 05                 # syscall
+:ELF_end

@@ -1,0 +1,78 @@
+# SPDX-FileCopyrightText: © 2019 Jeremiah Orians
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+	# Register usage:
+	# EBP => OUTPUT
+	# EDI => Buffer
+	# ESI => INPUT
+
+## ELF Header
+:ELF_base
+
+7F 45 4C 46        ## e_ident[EI_MAG0-3] ELF's magic number
+
+02                 ## e_ident[EI_CLASS] Indicating 64 bit
+01                 ## e_ident[EI_DATA] Indicating little endianness
+01                 ## e_ident[EI_VERSION] Indicating original elf
+
+03                 ## e_ident[EI_OSABI] Set at 3 because FreeBSD is strict
+00                 ## e_ident[EI_ABIVERSION] Set at 0 because none cares
+
+00 00 00 00 00 00 00 ## e_ident[EI_PAD]
+02 00              ## e_type Indicating Executable
+3E 00              ## e_machine Indicating AMD64
+01 00 00 00        ## e_version Indicating original elf
+
+&_start 00 00 00 00 ## e_entry Address of the entry point (Number of bytes this header is + Base Address)
+%ELF_program_headers>ELF_base 00 00 00 00 ## e_phoff Address of program header table
+00 00 00 00 00 00 00 00 ## e_shoff Address of section header table
+
+00 00 00 00        ## e_flags
+40 00              ## e_ehsize Indicating our 64 Byte header
+
+38 00              ## e_phentsize size of a program header table
+01 00              ## e_phnum number of entries in program table
+
+00 00              ## e_shentsize size of a section header table
+00 00              ## e_shnum number of entries in section table
+
+00 00              ## e_shstrndx index of the section names
+
+## Program Header
+:ELF_program_headers
+01 00 00 00             ## p_type
+07 00 00 00             ## ph_flags: PF-X|PF-W|PF-R = 7
+00 00 00 00 00 00 00 00 ## p_offset
+
+&ELF_base 00 00 00 00 ## p_vaddr
+&ELF_base 00 00 00 00 ## p_physaddr
+
+%ELF_end>ELF_base 00 00 00 00 ## p_filesz
+%ELF_end>ELF_base 00 00 00 00 ## p_memsz
+
+01 00 00 00 00 00 00 00 ## Required alignment
+
+:ELF_text
+
+:_start
+    58                          ; pop_eax                     # Get the number of arguments
+    5B                          ; pop_ebx                     # Get the program name (ignore)
+    5B                          ; pop_ebx                     # Get the path (argv[1])
+
+    ; Hard-coded mode = 700 octal = 448 decimal = 0x1C0
+    B9 C0 01 00 00              ; mov ecx, 0x1C0              # mode for chmod
+
+    ; Call chmod(path=ebx, mode=ecx)
+    ; Call chmod(path=rdi, mode=rsi)
+    48 89 DF                    ; mov rdi, rbx                ; path (from earlier pop)
+    48 89 CE                    ; mov rsi, rcx                ; mode (from earlier mov rcx)
+    48 C7 C0 5A 00 00 00        ; mov rax, 90 (chmod)
+    0F 05                       ; syscall
+
+    ; Exit with the return value from chmod
+    48 89 C7                    ; mov rdi, rax                ; status = chmod result
+    48 C7 C0 3C 00 00 00        ; mov rax, 60 (exit)
+    0F 05                       ; syscall
+
+:ELF_end

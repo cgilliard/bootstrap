@@ -8,5 +8,5 @@
 ./hex0 hex0_x86_64.hex0 hex0.cmp # rebuild
 cmp hex0 hex0.cmp # should return with no output (files equal)
 wc -c hex0 # show file size
-181 hex0
+229 hex0
 

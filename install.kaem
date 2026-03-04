@@ -2,3 +2,4 @@
 ./bin/hex1 ./src/hex2_x86_64.hex1 ./bin/hex2
 ./bin/hex2 ./src/catm_x86_64.hex2 ./bin/catm
 ./bin/hex2 ./src/chmod700_x86_64.hex2 ./bin/chmod700
+./bin/hex2 ./src/rem_x86_64.hex2 ./bin/rem

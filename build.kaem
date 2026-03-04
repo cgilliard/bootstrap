@@ -1,0 +1,2 @@
+bin/catm prog_elf.hex2 src/ELF-x86_64.hex2 prog.hex2 
+bin/hex2 prog_elf.hex2 a.out

@@ -1,0 +1,22 @@
+:_start
+    58                          ; pop rax                     # argc (we ignore it here)
+    5B                          ; pop rbx                     # argv[0] = program name (ignore)
+    5B                          ; pop rbx                     ; argv[1] = path to unlink → now in rbx
+
+    ; Prepare for unlink(pathname = rbx)
+    48 89 DF                    ; mov rdi, rbx                ; rdi = pathname (required arg)
+
+    ; rsi = 0 (not used by unlink, but good hygiene)
+    48 31 F6                    ; xor rsi, rsi
+
+    ; Syscall number for unlink = 87 = 0x57
+    B0 57                       ; mov al, 0x57                ; compact: only low byte (rax upper bits usually 0)
+
+    0F 05                       ; syscall                     ; call unlink
+
+    ; Exit with unlink's return value (0 = success, negative = error code)
+    48 89 C7                    ; mov rdi, rax                ; status = result from unlink
+    B0 3C                       ; mov al, 60                  ; syscall = exit
+    0F 05                       ; syscall
+
+:ELF_end

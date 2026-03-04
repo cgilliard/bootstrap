@@ -5,6 +5,7 @@
 ./bin/kaem-minimal install.kaem # run install script
 
 # Validation of seed:
+cmp ./bin/hex0 hex0-seed # should return with no output (files equal)
 ./bin/hex0 ./src/hex0_x86_64.hex0 hex0.cmp # rebuild
 cmp ./bin/hex0 hex0.cmp # should return with no output (files equal)
 rm hex0.cmp

@@ -6,28 +6,3 @@
 ./bin/M0 ./src/cc64.M1 ./tmp/cc64.hex2
 ./bin/catm ./tmp/cc64_elf.hex2 ./src/ELF.hex2 ./tmp/cc64.hex2
 ./bin/hex2 ./tmp/cc64_elf.hex2 ./bin/cc64
-./bin/catm ./tmp/m2.c \
-	./src/c/bootstrap.c \
-	./src/c/cc.h \
-	./src/c/bootstrappable.c \
-	./src/c/cc_globals.c \
-	./src/c/cc_reader.c \
-	./src/c/cc_strings.c \
-	./src/c/cc_types.c \
-	./src/c/cc_emit.c \
-	./src/c/cc_core.c \
-	./src/c/cc_macro.c \
-	./src/c/cc.c
-./bin/cc64 ./tmp/m2.c ./tmp/m2.M1
-./bin/catm ./tmp/m2_all.M1 ./src/m1/amd64_defs.M1 ./src/m1/libc-core.M1 ./tmp/m2.M1
-./bin/M0 ./tmp/m2_all.M1 ./tmp/m2.hex2
-./bin/catm ./tmp/m2.elf.hex2 ./src/ELF.hex2 ./tmp/m2.hex2
-./bin/hex2 ./tmp/m2.elf.hex2 ./bin/M2
-./bin/M2 \
-	--architecture amd64 \
-	--file src/c/bootstrap.c \
-	--file src/c/bootstrappable.c \
-	--file src/c/stringify.c \
-	--file src/c/blood-elf.c \
-	--bootstrap-mode \
-	-o ./tmp/blood-elf-0.M1

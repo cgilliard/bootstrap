@@ -1,4 +1,4 @@
-hex0 hex1_x86_64.hex0 hex1
-hex1 hex2_x86_64.hex1 hex2
-hex2 catm_x86_64.hex2 catm
-hex2 chmod700_x86_64.hex2 chmod700
+hex0 ./src/hex1_x86_64.hex0 ./bin/hex1
+./bin/hex1 ./src/hex2_x86_64.hex1 ./bin/hex2
+./bin/hex2 ./src/catm_x86_64.hex2 ./bin/catm
+./bin/hex2 ./src/chmod700_x86_64.hex2 ./bin/chmod700

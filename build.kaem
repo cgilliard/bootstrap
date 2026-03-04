@@ -3,3 +3,4 @@
 ./bin/hex2 ./src/catm.hex2 ./bin/catm
 ./bin/catm ./tmp/M0.hex2 ./src/ELF.hex2 ./src/M0.hex2
 ./bin/hex2 ./tmp/M0.hex2 ./bin/M0
+./bin/M0 ./src/cc.M1 ./tmp/cc.hex2

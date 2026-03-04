@@ -1,0 +1,2 @@
+./bin/hex0 ./src/hex1.hex0 ./bin/hex1
+./bin/hex1 ./src/hex2.hex1 ./bin/hex2

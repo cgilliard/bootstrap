@@ -1,2 +1,2 @@
-int main() {
-	return 3;}
+void _start() {
+}

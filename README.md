@@ -1,7 +1,7 @@
 # Instructions
 
 ./hex0-seed ./src/hex0_x86_64.hex0 ./bin/hex0 # build hex0 from seed
-./bin/hex0 ./src/kaem-minimal.hex0 ./bin/kaem-minimal # build kaem-minimal from hex0
+./bin/hex0 ./src/kaem-minimal_x86_64.hex0 ./bin/kaem-minimal # build kaem-minimal from hex0
 ./bin/kaem-minimal install.kaem # run install script
 
 # Validation of seed:

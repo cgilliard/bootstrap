@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 DEFINE add_rsi, 4881C6
+DEFINE add_rdi, 4881C7    
 DEFINE add_rbx, 4881C3
 DEFINE pop_rax 58
 DEFINE pop_rbp 5D
@@ -41,6 +42,12 @@ DEFINE push_r11 4153
 DEFINE ret C3
 DEFINE syscall 0F05
 DEFINE call E8 
+#DEFINE zero_rax 4831C0      
+#DEFINE zero_rbx 4831DB     
+#DEFINE zero_rcx 4831C9    
+#DEFINE zero_rdx 4831D2   
+#DEFINE zero_rsi 4831F6  
+#DEFINE zero_rdi 4831FF 
 DEFINE mov_rax, 48C7C0
 DEFINE mov_rbx, 48C7C3
 DEFINE mov_rcx, 48C7C1
@@ -81,6 +88,9 @@ DEFINE mov_r13,rdi 4989FD
 DEFINE mov_r14,rax 4989C6
 DEFINE mov_r15,rax 4989C7
 DEFINE cmp_rax, 483D
+DEFINE cmp_rbx, 4881FB
+DEFINE cmp_rcx, 4881F9
+DEFINE cmp_rdx, 4881FA
 DEFINE add_rax, 4805
 DEFINE jbe 0F86
 DEFINE je 0F84
@@ -110,9 +120,8 @@ DEFINE cmp_byte_rbx[rax] 803C03
 DEFINE cmp_byte_rsi[rax] 803C07
 
 DEFINE mov_rbx,[rsi] 488B1E
-DEFINE mov_rbx,[rsi+N] 488B5E
-
-
+DEFINE mov_rdi,[rsi] 488B3E
+DEFINE mov_rsi,[rsi] 488B36
 
 
 :_start
@@ -131,6 +140,26 @@ DEFINE mov_rbx,[rsi+N] 488B5E
     mov_rax, %60    # prep exit system call
     syscall
 
+
+# strcmp (rdi = s1, rsi = s2) → rax = result (negative / 0 / positive)
+
+:strcmp
+0FB617                ; movzx edx, byte [rdi]      rdx = (unsigned)*x
+0FB60E                ; movzx ecx, byte [rsi]      rcx = (unsigned)*y
+cmp_rdx, %0
+je %strcmp_end
+add_rdi, %1
+add_rsi, %1
+29CA                   ; sub   edx, ecx             edx = *x - *y
+89D0                   ; mov   eax, edx             rax = difference (low 32 bits)
+cmp_rax, %0
+je %strcmp
+:strcmp_end
+29CA                   ; sub   edx, ecx             edx = *x - *y
+89D0                   ; mov   eax, edx             rax = difference (low 32 bits)
+
+ret 
+
 :strlen
     mov_rax, %0
 :strlen_begin
@@ -142,16 +171,22 @@ DEFINE mov_rbx,[rsi+N] 488B5E
     ret
 
 :main
-    push_rsi
-    mov_rax, %1
-    mov_rdi, %1
-    mov_rdx, %13
-    lea_rsi,[rip+DWORD] %hello
-    syscall
-    pop_rsi
+    #push_rsi
+    #mov_rax, %1
+    #mov_rdi, %1
+    #mov_rdx, %13
+    #lea_rsi,[rip+DWORD] %hello
+    #syscall
+    #pop_rsi
+    #add_rsi, %8
+    #mov_rbx,[rsi] 
+    #call %strlen
+   
+    add_rsi, %8 
+    mov_rdi,[rsi]
     add_rsi, %8
-    mov_rbx,[rsi] 
-    call %strlen
+    mov_rsi,[rsi]
+    call %strcmp
     ret
 
 :hello 

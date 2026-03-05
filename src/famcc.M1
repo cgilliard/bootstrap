@@ -20,50 +20,25 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-DEFINE add_al, 04
-DEFINE add_rax, 4805
-DEFINE add_rbx, 4881C3
-DEFINE add_rcx, 4881C1
-DEFINE add_rdx, 4881C2
-DEFINE add_rsi, 4881C6
-DEFINE add_rax,rbx 4801D8
-DEFINE add_rax,rcx 4801C8
-DEFINE add_rbx,rax 4801C3
-DEFINE add_rcx,rdi 4801F9
-DEFINE add_rdi,rax 4801C7
-DEFINE and_rax, 4825
-DEFINE and_rax,rbx 4821D8
-DEFINE call E8
-DEFINE call_rax FFD0
-DEFINE cmp_al, 3C
-DEFINE cmp_rax, 483D
-DEFINE cmp_rbx, 4881FB
-DEFINE cmp_rcx, 4881F9
-DEFINE cmp_rdx, 4881FA
-DEFINE cmp_rbp, 4881FD
-DEFINE cmp_rsi, 4881FE
-DEFINE cmp_r12, 4981FC
-DEFINE cmp_rax,rbx 4839D8
-DEFINE cmp_rax,rcx 4839C8
-DEFINE cmp_rbx,rcx 4839CB
-DEFINE cmp_rbx,rdx 4839D3
-DEFINE cmp_rsi,rdi 4839FE
-DEFINE jbe 0F86
-DEFINE je 0F84
-DEFINE jg 0F8F
-DEFINE jl 0F8C
-DEFINE jle 0F8E
-DEFINE jmp E9
-DEFINE jne 0F85
-DEFINE idiv_rbx 48F7FB
-DEFINE imul_rax, 4869C0
-DEFINE imul_rbp, 4869ED
-DEFINE imul_rax,rbx 480FAFC3
-DEFINE lea_rsi,[rsp] 488D3424
-DEFINE lea_rax,[rip+DWORD] 488D05
-DEFINE lea_rbx,[rip+DWORD] 488D1D
-DEFINE lea_rcx,[rip+DWORD] 488D0D
-DEFINE lea_rdx,[rip+DWORD] 488D15
+DEFINE pop_rax 58
+DEFINE pop_rbp 5D
+DEFINE pop_rbx 5B
+DEFINE pop_rcx 59
+DEFINE pop_rdi 5F
+DEFINE pop_rdx 5A
+DEFINE pop_rsi 5E
+DEFINE pop_r11 415B
+DEFINE push_rax 50 
+DEFINE push_rbp 55 
+DEFINE push_rbx 53 
+DEFINE push_rcx 51 
+DEFINE push_rdi 57 
+DEFINE push_rdx 52 
+DEFINE push_rsi 56 
+DEFINE push_r11 4153
+DEFINE ret C3
+DEFINE syscall 0F05
+DEFINE call E8 
 DEFINE mov_rax, 48C7C0
 DEFINE mov_rbx, 48C7C3
 DEFINE mov_rcx, 48C7C1
@@ -102,107 +77,6 @@ DEFINE mov_r13,rax 4989C5
 DEFINE mov_r13,rdi 4989FD
 DEFINE mov_r14,rax 4989C6
 DEFINE mov_r15,rax 4989C7
-DEFINE mov_al,[rax] 8A00
-DEFINE mov_al,[rbx] 8A03
-DEFINE mov_al,[rcx] 8A01
-DEFINE mov_al,[rdx] 8A02
-DEFINE mov_bl,[rbx] 8A1B
-DEFINE mov_bl,[rcx] 8A19
-DEFINE mov_bl,[rdx] 8A1A
-DEFINE mov_cl,[rbx] 8A0B
-DEFINE mov_rax,[rax] 488B00
-DEFINE mov_rax,[rbx] 488B03
-DEFINE mov_rax,[r12] 498B0424
-DEFINE mov_rax,[r12+BYTE] 498B4424
-DEFINE mov_rbx,[rax] 488B18
-DEFINE mov_rbx,[rbx] 488B1B
-DEFINE mov_rbx,[rbx+BYTE] 488B5B
-DEFINE mov_rcx,[rbx] 488B0B
-DEFINE mov_rcx,[rcx] 488B09
-DEFINE mov_r12,[r12] 4D8B2424
-DEFINE mov_[rbx],al 8803
-DEFINE mov_[rcx],al 8801
-DEFINE mov_[rcx],bl 8819
-DEFINE mov_[rsi],al 8806
-DEFINE mov_[rax],rbx 488918
-DEFINE mov_[rax],rcx 488908
-DEFINE mov_[rbx],rax 488903
-DEFINE mov_[rdx],rax 488902
-DEFINE mov_cl,[rbx+BYTE] 8A4B
-DEFINE mov_rax,[rax+BYTE] 488B40
-DEFINE mov_rax,[rbx+BYTE] 488B43
-DEFINE mov_rax,[rcx+BYTE] 488B41
-DEFINE mov_rax,[rdx+BYTE] 488B42
-DEFINE mov_rbx,[rax+BYTE] 488B58
-DEFINE mov_rbx,[rcx+BYTE] 488B59
-DEFINE mov_rcx,[rax+BYTE] 488B48
-DEFINE mov_rcx,[rcx+BYTE] 488B49
-DEFINE mov_rcx,[rdx+BYTE] 488B4A
-DEFINE mov_rdi,[rdx+BYTE] 488B7A
-DEFINE mov_rdx,[rdx+BYTE] 488B52
-DEFINE mov_rax,[rax+DWORD] 488B40
-DEFINE mov_rbx,[rbx+DWORD] 488B5B
-DEFINE mov_rax,[rip+DWORD] 488B05
-DEFINE mov_rbx,[rip+DWORD] 488B1D
-DEFINE mov_rcx,[rip+DWORD] 488B0D
-DEFINE mov_[rax+BYTE],rbx 488958
-DEFINE mov_[rax+BYTE],rcx 488948
-DEFINE mov_[rax+BYTE],rdx 488950
-DEFINE mov_[rbp+BYTE],rax 488945
-DEFINE mov_[rbp+BYTE],rdx 488955
-DEFINE mov_[rbp+BYTE],rsi 488975
-DEFINE mov_[rcx+BYTE],rax 488941
-DEFINE mov_[rdx+BYTE],rax 488942
-DEFINE mov_[rdx+BYTE],rbx 48895A
-DEFINE mov_[rdx+BYTE],rcx 48894A
-DEFINE mov_[rdx+BYTE],rbp 48896A
-DEFINE mov_[rdx+BYTE],rsi 488972
-DEFINE mov_[rip+DWORD],rax 488905
-DEFINE mov_[rip+DWORD],rbx 48891D
-DEFINE mov_[rip+DWORD],rcx 48890D
-DEFINE mov_[rip+DWORD],rdx 488915
-DEFINE movzx_rax,al 480FB6C0
-DEFINE movzx_rbx,bl 480FB6DB
-DEFINE movzx_rcx,cl 480FB6C9
-DEFINE pop_rax 58
-DEFINE pop_rbp 5D
-DEFINE pop_rbx 5B
-DEFINE pop_rcx 59
-DEFINE pop_rdi 5F
-DEFINE pop_rdx 5A
-DEFINE pop_rsi 5E
-DEFINE pop_r11 415B
-DEFINE push_rax 50
-DEFINE push_rbp 55
-DEFINE push_rbx 53
-DEFINE push_rcx 51
-DEFINE push_rdi 57
-DEFINE push_rdx 52
-DEFINE push_rsi 56
-DEFINE push_r11 4153
-DEFINE ret C3
-DEFINE sal_rax, 48C1E0
-DEFINE shl_rax, 48C1E0
-DEFINE shr_rax, 48C1E8
-DEFINE shr_rbx  48D1EB
-DEFINE sub_rax, 482D
-DEFINE sub_rcx, 4881E9
-DEFINE sub_rsi, 4881EE
-DEFINE xchg_rax,rbx 4893
-DEFINE prepexit BF3C000000
-
-DEFINE NULL 0000000000000000
-
-:syscall
-    4889F8                      # mov %rdi, %rax            ; syscall number
-    4889F7                      # mov %rsi, %rdi            ; arg1
-    4889D6                      # mov %rdx, %rsi            ; arg2
-    4889CA                      # mov %rcx, %rdx            ; arg3
-    4D89C2                      # mov %r8, %r10             ; arg4
-    4D89C8                      # mov %r9, %r8              ; arg5
-    4C8B4C2408                  # mov 8(%rsp), %r9          ; arg6 from stack
-    0F05                        # syscall                   ;
-    C3                          # ret                       ; return result in rax
 
 :_start
     pop_rdi                     # Get the number of arguments store in rdi
@@ -210,13 +84,12 @@ DEFINE NULL 0000000000000000
     488D140E                    # Get envp store in rcx
     4883E4F0                    # and rsp, -16 stack align
     call %main                  # Call main
-    8BF0                        # Set return value from main as status
-    prepexit                    # mov 0x3c edi (exit)
-    call %syscall               # call the system call
+    mov_rdi,rax                 # Set the returned value from main as exit status
+    mov_rax, %60                # prep exit system call
+    syscall
 
 :main
-    push_rdi
-    pop_rax
+    mov_rax,rdi
     ret
 
 :ELF_end

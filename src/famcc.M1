@@ -26,6 +26,7 @@ DEFINE syscall 0F05
 DEFINE zero_rax 4831C0
 DEFINE mov_rdi,rax 4889C7
 DEFINE mov_rax, 48C7C0
+DEFINE mov_rdx, 48C7C2
 DEFINE mov_rax,rdi 4889F8
 DEFINE mov_rsp,rcx 4889E1
 DEFINE mov_rdi,rcx 4889F9
@@ -54,6 +55,7 @@ DEFINE jne 0F85
 DEFINE movzx_edx,byte[rdi] 0FB617
 DEFINE movzx_ecx,byte[rsi] 0FB60E
 DEFINE sub_edx,ecx 29CA
+DEFINE sub_rdx, 4881EA
 DEFINE mov_eax,edx 89D0
 
 
@@ -95,7 +97,33 @@ DEFINE mov_eax,edx 89D0
 :strcmp_end              # handle null terminated string compare last byte
     sub_edx,ecx          # edx = *x - *y
     mov_eax,edx          # rax = difference (low 32 bits)
-    ret 
+    ret
+
+:memset
+    cmp_rdx, %1
+    jl %memset_end
+:memset_loop
+    #  rsi[rdx(BYTE)-1] = 0; How do i do this in hex?
+    sub_rdx, %1
+    cmp_rdx, %0
+    jg %memset_loop
+:memset_end
+    ret
+
+
+DEFINE movb_al,[rsi]   488806
+DEFINE sub_rsp, 4883EC
+DEFINE add_rsp, 4883C4
+
+:memset
+    cmp_rdx, %1
+    jl %memset_end
+    sub_rdx, %1
+    movb_al,[rsi]
+    add_rsi, %1
+    jmp %memset
+:memset_end
+    ret
 
 
 
@@ -104,11 +132,17 @@ DEFINE mov_eax,edx 89D0
     #add_rsi, %16          # set rsi pointer to argv[2]
     #mov_rbx,[rsi]         # deref argv**
     #call %strlen          # call strlen propogate result
-    add_rsi, %8
-    mov_rdi,[rsi]
+    #add_rsi, %8
+    #mov_rdi,[rsi]
+    #add_rsi, %8
+    #mov_rsi,[rsi]
+    #call %strcmp
+    sub_rsp, !16
     add_rsi, %8
     mov_rsi,[rsi]
-    call %strcmp
+    mov_rdx, %4
+    call %memset
+    add_rsp, !16
     ret
 
 

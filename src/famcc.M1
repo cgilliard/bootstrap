@@ -24,9 +24,15 @@ DEFINE ret C3
 DEFINE call E8
 DEFINE syscall 0F05
 DEFINE zero_rax 4831C0
+DEFINE zero_r9 4D31C9
 DEFINE mov_rdi,rax 4889C7
 DEFINE mov_rax, 48C7C0
+DEFINE mov_rdi, 48C7C7
 DEFINE mov_rdx, 48C7C2
+DEFINE mov_rcx, 48C7C1
+DEFINE mov_rsi, 48C7C6
+DEFINE mov_r8,  41C7C0
+DEFINE mov_r10, 41C7C2
 DEFINE mov_rax,rdi 4889F8
 DEFINE mov_rsp,rcx 4889E1
 DEFINE mov_rdi,rcx 4889F9
@@ -115,8 +121,23 @@ DEFINE movzx_rax,byte[rsp+offset] 480FB68424
 :memset_end
     ret
 
+DEFINE mov_rsi,rdi 4889FE
+
+:map
+    mov_rsi,rdi              # set passed in size to the value passed to mmap
+    mov_rax, %9              # mmap system call
+    mov_rdi, %0              # first arg NULL
+    mov_rdx, %3              # prot = PROT_READ | PROT_WRITE
+    mov_r10, %34             # flags = MAP_ANONYMOUS | MAP_PRIVATE
+    mov_r8, FFFFFFFF         # fd = -1
+    zero_r9                  # offset = 0
+    syscall
+    ret
+
 :main
     sub_rsp, %32                  # allocate 32 bytes on stack
+    mov_rdi, %2048
+    call %map
     mov_rsi,rsp                   # point rsi to the bottom of the stack
     mov_rax, %47                  # set rax to 47 (our target value)
     mov_rdx, %32                  # set the number of bytes to write to 32

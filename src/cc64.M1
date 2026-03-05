@@ -86,6 +86,7 @@ DEFINE mov_rbx,rcx 4889CB
 DEFINE mov_rbx,rdx 4889D3
 DEFINE mov_rcx,rax 4889C1
 DEFINE mov_rcx,rbx 4889D9
+DEFINE mov_rdi,rax 4889C7
 DEFINE mov_rdi,rsi 4889F7
 DEFINE mov_rdi,r13 4C89EF
 DEFINE mov_rdi,r14 4C89F7
@@ -191,9 +192,22 @@ DEFINE xchg_rax,rbx 4893
 DEFINE NULL 0000000000000000
 
 :_start
-    mov_rdi, %09               
-    mov_rax, %60     
-    syscall         
+    pop_rax                     # Get the number of arguments
+    pop_rdi                     # Get the program name
+    pop_rdi                     # Get the actual input name
+
+    call %cmain
+
+    mov_rdi,rax
+    mov_rax, %0x3C
+    syscall
+
+
+:cmain
+    mov_rax, %22
+    ret
+
+
 
 :ELF_end
 

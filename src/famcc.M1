@@ -20,78 +20,25 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-DEFINE add_rsi, 4881C6
-DEFINE add_rdi, 4881C7    
-DEFINE add_rbx, 4881C3
-DEFINE pop_rax 58
-DEFINE pop_rbp 5D
-DEFINE pop_rbx 5B
-DEFINE pop_rcx 59
-DEFINE pop_rdi 5F
-DEFINE pop_rdx 5A
-DEFINE pop_rsi 5E
-DEFINE pop_r11 415B
-DEFINE push_rax 50 
-DEFINE push_rbp 55 
-DEFINE push_rbx 53 
-DEFINE push_rcx 51 
-DEFINE push_rdi 57 
-DEFINE push_rdx 52 
-DEFINE push_rsi 56 
-DEFINE push_r11 4153
 DEFINE ret C3
+DEFINE call E8
 DEFINE syscall 0F05
-DEFINE call E8 
-#DEFINE zero_rax 4831C0      
-#DEFINE zero_rbx 4831DB     
-#DEFINE zero_rcx 4831C9    
-#DEFINE zero_rdx 4831D2   
-#DEFINE zero_rsi 4831F6  
-#DEFINE zero_rdi 4831FF 
-DEFINE mov_rax, 48C7C0
-DEFINE mov_rbx, 48C7C3
-DEFINE mov_rcx, 48C7C1
-DEFINE mov_rdi, 48C7C7
-DEFINE mov_rdx, 48C7C2
-DEFINE mov_rsi, 48C7C6
-DEFINE mov_r8, 49C7C0
-DEFINE mov_r14, 49C7C6
-DEFINE mov_r15, 49C7C7
-DEFINE mov_rax,rdi 4889F8
-DEFINE mov_rax,rbp 4889E8
-DEFINE mov_rax,rbx 4889D8
-DEFINE mov_rax,rcx 4889C8
-DEFINE mov_rax,rdx 4889D0
-DEFINE mov_rax,r12 4C89E0
-DEFINE mov_rax,r13 4C89E8
-DEFINE mov_rax,rsi 4889F0
-DEFINE mov_rbp,rax 4889C5
-DEFINE mov_rbp,rdx 4889D5
-DEFINE mov_rbx,rax 4889C3
-DEFINE mov_rbx,rcx 4889CB
-DEFINE mov_rbx,rdx 4889D3
-DEFINE mov_rbx,rsi 4889F3
-DEFINE mov_rcx,rax 4889C1
-DEFINE mov_rcx,rbx 4889D9
+DEFINE zero_rax 4831C0
 DEFINE mov_rdi,rax 4889C7
-DEFINE mov_rdi,rsi 4889F7
-DEFINE mov_rdi,r13 4C89EF
-DEFINE mov_rdi,r14 4C89F7
-DEFINE mov_rdi,r15 4C89FF
-DEFINE mov_rdx,rax 4889C2
-DEFINE mov_rdx,rbx 4889DA
-DEFINE mov_rsi,rax 4889C6
-DEFINE mov_rsi,rdi 4889FE
-DEFINE mov_r12,rax 4989C4
-DEFINE mov_r13,rax 4989C5
-DEFINE mov_r13,rdi 4989FD
-DEFINE mov_r14,rax 4989C6
-DEFINE mov_r15,rax 4989C7
-DEFINE cmp_rax, 483D
-DEFINE cmp_rbx, 4881FB
-DEFINE cmp_rcx, 4881F9
-DEFINE cmp_rdx, 4881FA
+DEFINE mov_rax, 48C7C0
+DEFINE mov_rax,rdi 4889F8
+DEFINE mov_rsp,rcx 4889E1
+DEFINE mov_rdi,rcx 4889F9
+DEFINE mov(rsp),rdi 488B3C24
+DEFINE lea0x8(rsp),rsi 488D742408
+DEFINE lea(rsi,rcx,1),rdx 488D140E
+DEFINE mov_rbx,[rsi] 488B1E
+DEFINE cmp_byte_rbx[rax] 803C03
 DEFINE add_rax, 4805
+DEFINE add_rsi, 4881C6
+DEFINE add_rcx, 4883C1
+DEFINE shl_rcx, 48C1E1
+DEFINE stack_align 4883E4F0
 DEFINE jbe 0F86
 DEFINE je 0F84
 DEFINE jg 0F8F
@@ -99,99 +46,57 @@ DEFINE jl 0F8C
 DEFINE jle 0F8E
 DEFINE jmp E9
 DEFINE jne 0F85
-DEFINE mov_rax,[rax] 488B00                     
-DEFINE mov_rax,[rbx] 488B03
-DEFINE mov_rax,[r12] 498B0424
-DEFINE mov_rax,[r12+BYTE] 498B4424
-DEFINE mov_rbx,[rax] 488B18
-DEFINE mov_rbx,[rbx] 488B1B
-DEFINE mov_rbx,[rbx+BYTE] 488B5B
-DEFINE mov_rcx,[rbx] 488B0B
-DEFINE mov_rcx,[rcx] 488B09
-DEFINE mov_r12,[r12] 4D8B2424
-DEFINE cmp_byte,rsi[rax] 803C0600
-
-
-DEFINE mov_rbx,[rip+DWORD] 488B1D
-DEFINE lea_rbx,[rip+DWORD] 488D1D
-DEFINE lea_rsi,[rip+DWORD] 488D35
-DEFINE mov_rbx,[rax] 488B18
-DEFINE cmp_byte_rbx[rax] 803C03
-DEFINE cmp_byte_rsi[rax] 803C07
-
-DEFINE mov_rbx,[rsi] 488B1E
-DEFINE mov_rdi,[rsi] 488B3E
-DEFINE mov_rsi,[rsi] 488B36
-
 
 :_start
-    488B3C24        # mov    (%rsp),%rdi
-    488D742408      # lea    0x8(%rsp),%rsi
-    4889F9          # mov    %rdi,%rcx
-    4883C101        # add    $0x1,%rcx
-    48C1E103        # shl    $0x3,%rcx
-    488D140E        # lea    (%rsi,%rcx,1),%rdx
-    4889E1          # mov    %rsp,%rcx
-    4883E4F0        # and    $0xfffffffffffffff0,%rsp
-
-    
-    call %main      # Call main
-    mov_rdi,rax     # Set the returned value from main as exit status
-    mov_rax, %60    # prep exit system call
+    mov(rsp),rdi       # mov    (%rsp),%rdi
+    lea0x8(rsp),rsi    # lea    0x8(%rsp),%rsi
+    mov_rdi,rcx        # mov    %rdi,%rcx
+    add_rcx, 01        # add    $0x1,%rcx
+    shl_rcx, 03        # shl    $0x3,%rcx
+    lea(rsi,rcx,1),rdx # lea    (%rsi,%rcx,1),%rdx
+    mov_rsp,rcx        # mov    %rsp,%rcx
+    stack_align        # and    $0xfffffffffffffff0,%rsp
+    call %main         # Call main
+    mov_rdi,rax        # Set the returned value from main as exit status
+    mov_rax, %60       # prep exit system call
     syscall
 
-
-# strcmp (rdi = s1, rsi = s2) → rax = result (negative / 0 / positive)
-
-:strcmp
-0FB617                ; movzx edx, byte [rdi]      rdx = (unsigned)*x
-0FB60E                ; movzx ecx, byte [rsi]      rcx = (unsigned)*y
-cmp_rdx, %0
-je %strcmp_end
-add_rdi, %1
-add_rsi, %1
-29CA                   ; sub   edx, ecx             edx = *x - *y
-89D0                   ; mov   eax, edx             rax = difference (low 32 bits)
-cmp_rax, %0
-je %strcmp
-:strcmp_end
-29CA                   ; sub   edx, ecx             edx = *x - *y
-89D0                   ; mov   eax, edx             rax = difference (low 32 bits)
-
-ret 
-
 :strlen
-    mov_rax, %0
-:strlen_begin
-    cmp_byte_rbx[rax] 00
-    je %strlen_end
-    add_rax, %1 
-    jmp %strlen_begin
+    zero_rax              # zero rax
+:strlen_begin             # begin loop
+    cmp_byte_rbx[rax] 00  # compare the ith entry to 0
+    je %strlen_end        # if NULL byte jump to end
+    add_rax, %1           # i++
+    jmp %strlen_begin     # start over
 :strlen_end
     ret
 
-:main
-    #push_rsi
-    #mov_rax, %1
-    #mov_rdi, %1
-    #mov_rdx, %13
-    #lea_rsi,[rip+DWORD] %hello
-    #syscall
-    #pop_rsi
-    #add_rsi, %8
-    #mov_rbx,[rsi] 
-    #call %strlen
-   
-    add_rsi, %8 
-    mov_rdi,[rsi]
-    add_rsi, %8
-    mov_rsi,[rsi]
-    call %strcmp
-    ret
+# strcmp (rdi = s1, rsi = s2) → rax = result (negative / 0 / positive)
 
-:hello 
-"Hello World!
-"
+#:strcmp
+#0FB617                ; movzx edx, byte [rdi]      rdx = (unsigned)*x
+#0FB60E                ; movzx ecx, byte [rsi]      rcx = (unsigned)*y
+#cmp_rdx, %0
+#je %strcmp_end
+#add_rdi, %1
+#add_rsi, %1
+#29CA                   ; sub   edx, ecx             edx = *x - *y
+#89D0                   ; mov   eax, edx             rax = difference (low 32 bits)
+#cmp_rax, %0
+#je %strcmp
+#:strcmp_end
+#29CA                   ; sub   edx, ecx             edx = *x - *y
+#89D0                   ; mov   eax, edx             rax = difference (low 32 bits)
+#ret 
+
+
+
+:main
+    add_rsi, %16          # set rsi pointer to argv[2]
+    mov_rbx,[rsi]         # deref argv**
+    call %strlen          # call strlen propogate result
+ret
+
 
 
 :ELF_end

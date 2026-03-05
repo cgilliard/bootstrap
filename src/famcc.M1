@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+DEFINE add_rsi, 4881C6
+DEFINE add_rbx, 4881C3
 DEFINE pop_rax 58
 DEFINE pop_rbp 5D
 DEFINE pop_rbx 5B
@@ -61,6 +63,7 @@ DEFINE mov_rbp,rdx 4889D5
 DEFINE mov_rbx,rax 4889C3
 DEFINE mov_rbx,rcx 4889CB
 DEFINE mov_rbx,rdx 4889D3
+DEFINE mov_rbx,rsi 4889F3
 DEFINE mov_rcx,rax 4889C1
 DEFINE mov_rcx,rbx 4889D9
 DEFINE mov_rdi,rax 4889C7
@@ -77,27 +80,78 @@ DEFINE mov_r13,rax 4989C5
 DEFINE mov_r13,rdi 4989FD
 DEFINE mov_r14,rax 4989C6
 DEFINE mov_r15,rax 4989C7
+DEFINE cmp_rax, 483D
+DEFINE add_rax, 4805
+DEFINE jbe 0F86
+DEFINE je 0F84
+DEFINE jg 0F8F
+DEFINE jl 0F8C
+DEFINE jle 0F8E
+DEFINE jmp E9
+DEFINE jne 0F85
+DEFINE mov_rax,[rax] 488B00                     
+DEFINE mov_rax,[rbx] 488B03
+DEFINE mov_rax,[r12] 498B0424
+DEFINE mov_rax,[r12+BYTE] 498B4424
+DEFINE mov_rbx,[rax] 488B18
+DEFINE mov_rbx,[rbx] 488B1B
+DEFINE mov_rbx,[rbx+BYTE] 488B5B
+DEFINE mov_rcx,[rbx] 488B0B
+DEFINE mov_rcx,[rcx] 488B09
+DEFINE mov_r12,[r12] 4D8B2424
+DEFINE cmp_byte,rsi[rax] 803C0600
 
+
+DEFINE mov_rbx,[rip+DWORD] 488B1D
+DEFINE lea_rbx,[rip+DWORD] 488D1D
 DEFINE lea_rsi,[rip+DWORD] 488D35
+DEFINE mov_rbx,[rax] 488B18
+DEFINE cmp_byte_rbx[rax] 803C03
+DEFINE cmp_byte_rsi[rax] 803C07
+
+DEFINE mov_rbx,[rsi] 488B1E
+DEFINE mov_rbx,[rsi+N] 488B5E
+
+
+
 
 :_start
-    pop_rdi                     # Get the number of arguments store in rdi
-    488D742408                  # Get argv store in rsi
-    488D140E                    # Get envp store in rcx
-    4883E4F0                    # and rsp, -16 stack align
-    call %main                  # Call main
-    mov_rdi,rax                 # Set the returned value from main as exit status
-    mov_rax, %60                # prep exit system call
+    488B3C24        # mov    (%rsp),%rdi
+    488D742408      # lea    0x8(%rsp),%rsi
+    4889F9          # mov    %rdi,%rcx
+    4883C101        # add    $0x1,%rcx
+    48C1E103        # shl    $0x3,%rcx
+    488D140E        # lea    (%rsi,%rcx,1),%rdx
+    4889E1          # mov    %rsp,%rcx
+    4883E4F0        # and    $0xfffffffffffffff0,%rsp
+
+    
+    call %main      # Call main
+    mov_rdi,rax     # Set the returned value from main as exit status
+    mov_rax, %60    # prep exit system call
     syscall
 
+:strlen
+    mov_rax, %0
+:strlen_begin
+    cmp_byte_rbx[rax] 00
+    je %strlen_end
+    add_rax, %1 
+    jmp %strlen_begin
+:strlen_end
+    ret
+
 :main
-    push_rdi
+    push_rsi
     mov_rax, %1
     mov_rdi, %1
     mov_rdx, %13
     lea_rsi,[rip+DWORD] %hello
     syscall
-    pop_rax 
+    pop_rsi
+    add_rsi, %8
+    mov_rbx,[rsi] 
+    call %strlen
     ret
 
 :hello 

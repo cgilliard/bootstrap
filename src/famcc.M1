@@ -51,6 +51,11 @@ DEFINE jl 0F8C
 DEFINE jle 0F8E
 DEFINE jmp E9
 DEFINE jne 0F85
+DEFINE movzx_edx,byte[rdi] 0FB617
+DEFINE movzx_ecx,byte[rsi] 0FB60E
+DEFINE sub_edx,ecx 29CA
+DEFINE mov_eax,edx 89D0
+
 
 :_start
     mov(rsp),rdi       # mov    (%rsp),%rdi
@@ -59,9 +64,8 @@ DEFINE jne 0F85
     add_rcx, 01        # add    $0x1,%rcx
     shl_rcx, 03        # shl    $0x3,%rcx
     lea(rsi,rcx,1),rdx # lea    (%rsi,%rcx,1),%rdx
-    mov_rsp,rcx        # mov    %rsp,%rcx
     stack_align        # and    $0xfffffffffffffff0,%rsp
-    call %main         # Call main
+    call %main         # Call main(argc, argv, envp)
     mov_rdi,rax        # Set the returned value from main as exit status
     mov_rax, %60       # prep exit system call
     syscall
@@ -77,22 +81,21 @@ DEFINE jne 0F85
     ret
 
 :strcmp
-0FB617                ; movzx edx, byte [rdi]      rdx = (unsigned)*x
-0FB60E                ; movzx ecx, byte [rsi]      rcx = (unsigned)*y
-cmp_rdx, %0
-je %strcmp_end
-add_rdi, %1
-add_rsi, %1
-29CA                   ; sub   edx, ecx             edx = *x - *y
-89D0                   ; mov   eax, edx             rax = difference (low 32 bits)
-cmp_rax, %0
-je %strcmp
-ret
-:strcmp_end
-29CA                   ; sub   edx, ecx             edx = *x - *y
-89D0                   ; mov   eax, edx             rax = difference (low 32 bits)
-
-ret 
+    movzx_edx,byte[rdi]  # rdx = (unsigned)*x
+    movzx_ecx,byte[rsi]  # rcx = (unsigned)*y
+    cmp_rdx, %0          # is *x == 0 (null term)
+    je %strcmp_end       # if so, jump to strcmp_end
+    add_rdi, %1          # *x++
+    add_rsi, %1          # *y++
+    sub_edx,ecx          # edx = *x - *y
+    mov_eax,edx          # rax = difference (low 32 bits)
+    cmp_rax, %0          # compare rax to 0
+    je %strcmp           # if rax 0 (*x == *y), continue on to next char
+    ret                  # otherwise return with rax value
+:strcmp_end              # handle null terminated string compare last byte
+    sub_edx,ecx          # edx = *x - *y
+    mov_eax,edx          # rax = difference (low 32 bits)
+    ret 
 
 
 

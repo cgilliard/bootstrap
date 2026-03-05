@@ -30,7 +30,7 @@ DEFINE mov_rdx, 48C7C2
 DEFINE mov_rax,rdi 4889F8
 DEFINE mov_rsp,rcx 4889E1
 DEFINE mov_rdi,rcx 4889F9
-DEFINE mov(rsp),rdi 488B3C24
+DEFINE mov_rdi,[rsp] 488B3C24
 DEFINE lea0x8(rsp),rsi 488D742408
 DEFINE lea(rsi,rcx,1),rdx 488D140E
 DEFINE mov_rbx,[rsi] 488B1E
@@ -57,12 +57,16 @@ DEFINE movzx_ecx,byte[rsi] 0FB60E
 DEFINE sub_edx,ecx 29CA
 DEFINE sub_rdx, 4881EA
 DEFINE mov_eax,edx 89D0
+DEFINE movb[rsi],al 8806
+DEFINE sub_rsp, 4883EC
+DEFINE add_rsp, 4883C4
+DEFINE mov_rsi,rsp 4889E6
 
 
 :_start
-    mov(rsp),rdi       # mov    (%rsp),%rdi
-    lea0x8(rsp),rsi    # lea    0x8(%rsp),%rsi
-    mov_rdi,rcx        # mov    %rdi,%rcx
+    mov_rdi,[rsp]      # mov    argc into rdi
+    lea0x8(rsp),rsi    # mov    argv into rsi
+    mov_rdi,rcx        # mov    envp into rcx
     add_rcx, 01        # add    $0x1,%rcx
     shl_rcx, 03        # shl    $0x3,%rcx
     lea(rsi,rcx,1),rdx # lea    (%rsi,%rcx,1),%rdx
@@ -99,50 +103,26 @@ DEFINE mov_eax,edx 89D0
     mov_eax,edx          # rax = difference (low 32 bits)
     ret
 
-:memset
-    cmp_rdx, %1
-    jl %memset_end
-:memset_loop
-    #  rsi[rdx(BYTE)-1] = 0; How do i do this in hex?
-    sub_rdx, %1
-    cmp_rdx, %0
-    jg %memset_loop
-:memset_end
-    ret
-
-
-DEFINE movb_al,[rsi]   488806
-DEFINE sub_rsp, 4883EC
-DEFINE add_rsp, 4883C4
 
 :memset
     cmp_rdx, %1
     jl %memset_end
     sub_rdx, %1
-    movb_al,[rsi]
+    movb[rsi],al
     add_rsi, %1
     jmp %memset
 :memset_end
     ret
 
-
-
-
 :main
-    #add_rsi, %16          # set rsi pointer to argv[2]
-    #mov_rbx,[rsi]         # deref argv**
-    #call %strlen          # call strlen propogate result
-    #add_rsi, %8
-    #mov_rdi,[rsi]
-    #add_rsi, %8
-    #mov_rsi,[rsi]
-    #call %strcmp
-    sub_rsp, !16
-    add_rsi, %8
-    mov_rsi,[rsi]
-    mov_rdx, %4
+    sub_rsp, !32
+    mov_rsi,rsp
+    mov_rax, %47
+    mov_rdx, %32
     call %memset
-    add_rsp, !16
+    mov_rax, %0
+    480FB64424 !9
+    add_rsp, !32
     ret
 
 

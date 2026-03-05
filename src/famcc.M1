@@ -70,8 +70,10 @@ DEFINE mov_rcx, 48C7C1
 DEFINE mov_rdi, 48C7C7
 DEFINE mov_rdx, 48C7C2
 DEFINE mov_rsi, 48C7C6
+DEFINE mov_r8, 49C7C0
 DEFINE mov_r14, 49C7C6
 DEFINE mov_r15, 49C7C7
+DEFINE mov_rax,rdi 4889F8
 DEFINE mov_rax,rbp 4889E8
 DEFINE mov_rax,rbx 4889D8
 DEFINE mov_rax,rcx 4889C8
@@ -186,28 +188,88 @@ DEFINE shr_rbx  48D1EB
 DEFINE sub_rax, 482D
 DEFINE sub_rcx, 4881E9
 DEFINE sub_rsi, 4881EE
-DEFINE syscall 0F05
 DEFINE xchg_rax,rbx 4893
 
 DEFINE NULL 0000000000000000
 
+:syscall
+    4889F8                      # mov %rdi, %rax            ; syscall number
+    4889F7                      # mov %rsi, %rdi            ; arg1
+    4889D6                      # mov %rdx, %rsi            ; arg2
+    4889CA                      # mov %rcx, %rdx            ; arg3
+    4D89C2                      # mov %r8, %r10             ; arg4
+    4D89C8                      # mov %r9, %r8              ; arg5
+    4C8B4C2408                  # mov 8(%rsp), %r9          ; arg6 from stack
+    0F05                        # syscall                   ;
+    C3                          # ret                       ; return result in rax
+
 :_start
-    pop_rax                     # Get the number of arguments
-    pop_rdi                     # Get the program name
-    pop_rdi                     # Get the actual input name
+    pop_rdi                     # Get the number of arguments store in rdi
+    488D742408                  # Get argv store in rsi
+    488D140E                    # Get envp store in rcx
+    4883E4F0                    # and rsp, -16 stack align
+    call %main                  # Call main
+    8BF0                        # Set esi with the value returned in rax from main
+    BF3C000000                  # mov 0x3c edi (exit)
+    call %syscall               # call the system call
 
-    call %cmain
-
-    mov_rdi,rax
-    mov_rax, %0x3C
-    syscall
-
-
-:cmain
-    mov_rax, %22
+:main
+    push_rdi
+    mov_r14, %1
+    lea_rax,[rip+DWORD] %hello
+    call %File_Print    
+    pop_rax
     ret
 
 
+# File_Print function
+# Receives CHAR* in RAX
+# calls fputc for every non-null char
+:File_Print
+    push_rbx                     # Protect RBX
+    push_rcx                     # Protect RCX
+    mov_rbx,rax                  # Protect S
+    cmp_rax, %0                  # Protect against nulls
+    je %File_Print_Done          # Simply don't try to print them
+:File_Print_Loop
+    mov_al,[rbx]                 # Read byte
+    movzx_rax,al                 # zero extend
+    cmp_rax, %0                  # Check for NULL
+    je %File_Print_Done          # Stop at NULL
+
+    call %fputc                  # write it
+    add_rbx, %1                  # S = S + 1
+    jmp %File_Print_Loop         # Keep going
+
+:File_Print_Done
+    pop_rcx                      # Restore RCX
+    pop_rbx                      # Restore RBX
+    ret
+
+
+# fputc function
+# receives CHAR in RAX and FILE* in R14
+# writes char and returns
+:fputc
+    push_rax                    # We are writing rax
+    lea_rsi,[rsp]               # Get stack address
+    mov_rdi,r14                 # Write to target file
+    mov_rax, %1                 # the syscall number for write
+    push_rdx                    # Protect RDX
+    mov_rdx, %1                 # set the size of chars we want
+    push_rcx                    # Protect RCX
+    push_r11                    # Protect R11
+    0F05                        # call the Kernel
+    pop_r11                     # Restore R11
+    pop_rcx                     # Restore RCX
+    pop_rdx                     # Restore RDX
+    pop_rax                     # Restore stack
+    ret
+
+
+:hello
+"Hello World!
+"
 
 :ELF_end
 

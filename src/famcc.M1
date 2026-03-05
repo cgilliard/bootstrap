@@ -33,9 +33,14 @@ DEFINE mov(rsp),rdi 488B3C24
 DEFINE lea0x8(rsp),rsi 488D742408
 DEFINE lea(rsi,rcx,1),rdx 488D140E
 DEFINE mov_rbx,[rsi] 488B1E
+DEFINE mov_rsi,[rsi] 488B36
 DEFINE cmp_byte_rbx[rax] 803C03
+DEFINE cmp_rax, 483D
+DEFINE cmp_rdx, 4881FA
+DEFINE mov_rdi,[rsi] 488B3E
 DEFINE add_rax, 4805
 DEFINE add_rsi, 4881C6
+DEFINE add_rdi, 4881C7    
 DEFINE add_rcx, 4883C1
 DEFINE shl_rcx, 48C1E1
 DEFINE stack_align 4883E4F0
@@ -71,31 +76,38 @@ DEFINE jne 0F85
 :strlen_end
     ret
 
-# strcmp (rdi = s1, rsi = s2) → rax = result (negative / 0 / positive)
+:strcmp
+0FB617                ; movzx edx, byte [rdi]      rdx = (unsigned)*x
+0FB60E                ; movzx ecx, byte [rsi]      rcx = (unsigned)*y
+cmp_rdx, %0
+je %strcmp_end
+add_rdi, %1
+add_rsi, %1
+29CA                   ; sub   edx, ecx             edx = *x - *y
+89D0                   ; mov   eax, edx             rax = difference (low 32 bits)
+cmp_rax, %0
+je %strcmp
+ret
+:strcmp_end
+29CA                   ; sub   edx, ecx             edx = *x - *y
+89D0                   ; mov   eax, edx             rax = difference (low 32 bits)
 
-#:strcmp
-#0FB617                ; movzx edx, byte [rdi]      rdx = (unsigned)*x
-#0FB60E                ; movzx ecx, byte [rsi]      rcx = (unsigned)*y
-#cmp_rdx, %0
-#je %strcmp_end
-#add_rdi, %1
-#add_rsi, %1
-#29CA                   ; sub   edx, ecx             edx = *x - *y
-#89D0                   ; mov   eax, edx             rax = difference (low 32 bits)
-#cmp_rax, %0
-#je %strcmp
-#:strcmp_end
-#29CA                   ; sub   edx, ecx             edx = *x - *y
-#89D0                   ; mov   eax, edx             rax = difference (low 32 bits)
-#ret 
+ret 
+
 
 
 
 :main
-    add_rsi, %16          # set rsi pointer to argv[2]
-    mov_rbx,[rsi]         # deref argv**
-    call %strlen          # call strlen propogate result
-ret
+    #add_rsi, %16          # set rsi pointer to argv[2]
+    #mov_rbx,[rsi]         # deref argv**
+    #call %strlen          # call strlen propogate result
+    add_rsi, %8
+    mov_rdi,[rsi]
+    add_rsi, %8
+    mov_rsi,[rsi]
+    call %strcmp
+    ret
+
 
 
 

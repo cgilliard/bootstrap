@@ -78,6 +78,8 @@ DEFINE mov_r13,rdi 4989FD
 DEFINE mov_r14,rax 4989C6
 DEFINE mov_r15,rax 4989C7
 
+DEFINE lea_rsi,[rip+DWORD] 488D35
+
 :_start
     pop_rdi                     # Get the number of arguments store in rdi
     488D742408                  # Get argv store in rsi
@@ -89,8 +91,19 @@ DEFINE mov_r15,rax 4989C7
     syscall
 
 :main
-    mov_rax,rdi
+    push_rdi
+    mov_rax, %1
+    mov_rdi, %1
+    mov_rdx, %13
+    lea_rsi,[rip+DWORD] %hello
+    syscall
+    pop_rax 
     ret
+
+:hello 
+"Hello World!
+"
+
 
 :ELF_end
 

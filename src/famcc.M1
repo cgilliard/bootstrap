@@ -210,82 +210,14 @@ DEFINE NULL 0000000000000000
     488D140E                    # Get envp store in rcx
     4883E4F0                    # and rsp, -16 stack align
     call %main                  # Call main
-    8BF0                        # Set rsi with the value returned in rax from main
+    8BF0                        # Set return value from main as status
     prepexit                    # mov 0x3c edi (exit)
     call %syscall               # call the system call
 
 :main
     push_rdi
-    mov_rax,rdi
-    cmp_rax, %2
-    lea_rax,[rip+DWORD] %usage
-    jl %panic
-    mov_r14, %1
-    lea_rax,[rip+DWORD] %hello
-    call %File_Print    
     pop_rax
     ret
-
-# Print message and exit 255
-:panic
-    mov_r14, %1
-    call %File_Print
-    mov_rsi, %255
-    prepexit
-    call %syscall
-
-# File_Print function
-# Receives CHAR* in RAX
-# calls fputc for every non-null char
-:File_Print
-    push_rbx                     # Protect RBX
-    push_rcx                     # Protect RCX
-    mov_rbx,rax                  # Protect S
-    cmp_rax, %0                  # Protect against nulls
-    je %File_Print_Done          # Simply don't try to print them
-:File_Print_Loop
-    mov_al,[rbx]                 # Read byte
-    movzx_rax,al                 # zero extend
-    cmp_rax, %0                  # Check for NULL
-    je %File_Print_Done          # Stop at NULL
-
-    call %fputc                  # write it
-    add_rbx, %1                  # S = S + 1
-    jmp %File_Print_Loop         # Keep going
-
-:File_Print_Done
-    pop_rcx                      # Restore RCX
-    pop_rbx                      # Restore RBX
-    ret
-
-
-# fputc function
-# receives CHAR in RAX and FILE* in R14
-# writes char and returns
-:fputc
-    push_rax                    # We are writing rax
-    lea_rsi,[rsp]               # Get stack address
-    mov_rdi,r14                 # Write to target file
-    mov_rax, %1                 # the syscall number for write
-    push_rdx                    # Protect RDX
-    mov_rdx, %1                 # set the size of chars we want
-    push_rcx                    # Protect RCX
-    push_r11                    # Protect R11
-    0F05                        # call the Kernel
-    pop_r11                     # Restore R11
-    pop_rcx                     # Restore RCX
-    pop_rdx                     # Restore RDX
-    pop_rax                     # Restore stack
-    ret
-
-
-:hello
-"Hello World!
-"
-
-:usage
-"Usage: famcc <source_file>
-"
 
 :ELF_end
 

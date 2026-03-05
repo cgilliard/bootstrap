@@ -58,9 +58,10 @@ DEFINE sub_edx,ecx 29CA
 DEFINE sub_rdx, 4881EA
 DEFINE mov_eax,edx 89D0
 DEFINE movb[rsi],al 8806
-DEFINE sub_rsp, 4883EC
-DEFINE add_rsp, 4883C4
+DEFINE sub_rsp, 4881EC
+DEFINE add_rsp, 4881C4
 DEFINE mov_rsi,rsp 4889E6
+DEFINE movzx_rax,byte[rsp+offset] 480FB68424
 
 
 :_start
@@ -105,28 +106,25 @@ DEFINE mov_rsi,rsp 4889E6
 
 
 :memset
-    cmp_rdx, %1
-    jl %memset_end
-    sub_rdx, %1
-    movb[rsi],al
-    add_rsi, %1
-    jmp %memset
+    cmp_rdx, %1          # Compare rdx to 1
+    jl %memset_end       # less than (0 or less) go to end
+    sub_rdx, %1          # sub 1 from rdx
+    movb[rsi],al         # set the byte pointed to by rsi to the value in al
+    add_rsi, %1          # *X++;
+    jmp %memset          # start over
 :memset_end
     ret
 
 :main
-    sub_rsp, !32
-    mov_rsi,rsp
-    mov_rax, %47
-    mov_rdx, %32
-    call %memset
-    mov_rax, %0
-    480FB64424 !9
-    add_rsp, !32
+    sub_rsp, %32                  # allocate 32 bytes on stack
+    mov_rsi,rsp                   # point rsi to the bottom of the stack
+    mov_rax, %47                  # set rax to 47 (our target value)
+    mov_rdx, %32                  # set the number of bytes to write to 32
+    call %memset                  # call memset
+    mov_rax, %0                   # zero rax to be sure
+    movzx_rax,byte[rsp+offset] %9 # set rax to the value in the 9th index to confirm
+    add_rsp, %32                  # reset stack ptr
     ret
-
-
-
 
 :ELF_end
 

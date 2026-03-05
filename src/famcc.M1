@@ -189,6 +189,7 @@ DEFINE sub_rax, 482D
 DEFINE sub_rcx, 4881E9
 DEFINE sub_rsi, 4881EE
 DEFINE xchg_rax,rbx 4893
+DEFINE prepexit BF3C000000
 
 DEFINE NULL 0000000000000000
 
@@ -209,18 +210,29 @@ DEFINE NULL 0000000000000000
     488D140E                    # Get envp store in rcx
     4883E4F0                    # and rsp, -16 stack align
     call %main                  # Call main
-    8BF0                        # Set esi with the value returned in rax from main
-    BF3C000000                  # mov 0x3c edi (exit)
+    8BF0                        # Set rsi with the value returned in rax from main
+    prepexit                    # mov 0x3c edi (exit)
     call %syscall               # call the system call
 
 :main
     push_rdi
+    mov_rax,rdi
+    cmp_rax, %2
+    lea_rax,[rip+DWORD] %usage
+    jl %panic
     mov_r14, %1
     lea_rax,[rip+DWORD] %hello
     call %File_Print    
     pop_rax
     ret
 
+# Print message and exit 255
+:panic
+    mov_r14, %1
+    call %File_Print
+    mov_rsi, %255
+    prepexit
+    call %syscall
 
 # File_Print function
 # Receives CHAR* in RAX
@@ -269,6 +281,10 @@ DEFINE NULL 0000000000000000
 
 :hello
 "Hello World!
+"
+
+:usage
+"Usage: famcc <source_file>
 "
 
 :ELF_end

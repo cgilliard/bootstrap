@@ -44,6 +44,7 @@ DEFINE mov_rsi,[rsi] 488B36
 DEFINE cmp_byte_rbx[rax] 803C03
 DEFINE cmp_rax, 483D
 DEFINE cmp_rdx, 4881FA
+DEFINE cmp_rdi, 4881FF
 DEFINE mov_rdi,[rsi] 488B3E
 DEFINE add_rax, 4805
 DEFINE add_rsi, 4881C6
@@ -68,6 +69,9 @@ DEFINE sub_rsp, 4881EC
 DEFINE add_rsp, 4881C4
 DEFINE mov_rsi,rsp 4889E6
 DEFINE movzx_rax,byte[rsp+offset] 480FB68424
+DEFINE push_rax 50
+DEFINE pop_rdi 5F
+DEFINE mov_rsi,rbx 4889DE
 
 
 :_start
@@ -122,6 +126,8 @@ DEFINE movzx_rax,byte[rsp+offset] 480FB68424
     ret
 
 DEFINE mov_rsi,rdi 4889FE
+DEFINE lea_rbx,[rip+offset] 488D1D
+DEFINE mov_rdx,rax 4889C2
 
 :map
     mov_rsi,rdi              # set passed in size to the value passed to mmap
@@ -134,18 +140,115 @@ DEFINE mov_rsi,rdi 4889FE
     syscall
     ret
 
+:write_str
+    push_rax
+    call %strlen
+    mov_rdx,rax
+    pop_rdi
+    mov_rax, %1
+    mov_rsi,rbx
+    syscall
+    ret
+
+:panic
+    mov_rax, %2
+    call %write_str
+    lea_rbx,[rip+offset] %nl
+    mov_rax, %2
+    call %write_str
+    mov_rax, %60
+    mov_rdi, %255
+    syscall
+
+DEFINE sub_rsp,           4881EC
+DEFINE add_rsp,           4881C4
+DEFINE push_rax           50
+DEFINE pop_rax            58
+DEFINE mov_rbx,rsp        4889E3
+DEFINE add_rbx,           4881C3
+DEFINE sub_rbx,           4881EB
+DEFINE mov_rax,           48C7C0
+DEFINE mov_rcx,           48C7C1
+DEFINE mov_rdi,rax        4889C7
+DEFINE mov_rax,rdi        4889F8
+DEFINE mov_rax,rdx        4889D0
+DEFINE zero_rdx           4831D2
+DEFINE div_rcx            48F7F1
+DEFINE add_rax,           4881C0
+DEFINE cmp_rdi,           4881FF
+DEFINE movb[rbx],al       8803
+DEFINE call               E8
+DEFINE ret                C3
+DEFINE jmp                E9
+DEFINE je                 0F84
+
+
+# rax = fd, rdi = number
+:write_num
+    sub_rsp, %32
+    push_rax
+    mov_rbx,rsp
+    add_rbx, %20
+    mov_rax, %0
+    movb[rbx],al
+:write_num_loop    
+    cmp_rdi, %0
+    je %write_num_end
+    sub_rbx, %1
+    mov_rax,rdi
+    zero_rdx
+    mov_rcx, %10
+    div_rcx
+    mov_rdi,rax
+    mov_rax,rdx
+    add_rax, %48
+    movb[rbx],al 
+jmp %write_num_loop
+:write_num_end
+    pop_rax
+    call %write_str
+    add_rsp, %32
+    ret
+    
+
 :main
     sub_rsp, %32                  # allocate 32 bytes on stack
-    mov_rdi, %2048
-    call %map
-    mov_rsi,rsp                   # point rsi to the bottom of the stack
-    mov_rax, %47                  # set rax to 47 (our target value)
-    mov_rdx, %32                  # set the number of bytes to write to 32
-    call %memset                  # call memset
-    mov_rax, %0                   # zero rax to be sure
-    movzx_rax,byte[rsp+offset] %9 # set rax to the value in the 9th index to confirm
+    cmp_rdi, %1
+    jg %args_ok
+    lea_rbx,[rip+offset] %usage   
+    call %panic
+:args_ok
+    mov_rax, %1
+    mov_rdi, %123
+    call %write_num
+
+
+    lea_rbx,[rip+offset] %hello
+    mov_rax, %1
+    call %write_str
+    #mov_rdi, %2048
+    #call %map
+    #mov_rsi,rsp                   # point rsi to the bottom of the stack
+    #mov_rax, %47                  # set rax to 47 (our target value)
+    #mov_rdx, %32                  # set the number of bytes to write to 32
+    #call %memset                  # call memset
+    #mov_rax, %0                   # zero rax to be sure
+    #movzx_rax,byte[rsp+offset] %9 # set rax to the value in the 9th index to confirm
     add_rsp, %32                  # reset stack ptr
     ret
+
+:hello
+"
+hello
+"
+
+:nl
+"
+"
+
+:usage
+"Usage: famcc <source_file>"
+
 
 :ELF_end
 

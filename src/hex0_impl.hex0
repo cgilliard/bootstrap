@@ -68,6 +68,7 @@ E5 00 00 00 00 00 00 00 ## p_memsz
 6A 42 5E            # rsi = 2 (O_RDWR) <- Use 2 for writing!
 BA ED 01 00 00      # mov edx, 493     (0755 permissions - hex 0x1ED)
 0F 05               # syscall (RAX = output FD)
+49 89 C6    # mov r14, rax   (Store FD in R14, it's safe there)
 50                  ; push_rax
 4158                ; pop_r8          # file desc for mmap system call
 48 89 C7            # mov rdi, rax     (FD into RDI)
@@ -94,14 +95,25 @@ BE FF FF 00 00      # mov esi, 65535    (RESET THE SIZE!)
 
 # --- Start of Loop (Target for E2) ---
 44 8A 06    # 3 bytes : mov r8b, [rsi]    (Read byte)
+45 84 C0    # 3 bytes : test r8b, r8b     (Is it null?)
+74 0B       # 2 bytes : je +11            (If null, jump to EXIT)
+
 44 88 07    # 3 bytes : mov [rdi], r8b    (Write byte)
+48 FF C6    # 3 bytes : inc rsi           (Advance input)
+48 FF C7    # 3 bytes : inc rdi           (Advance output)
 
-# --- Increments ---
-48 FF C6    # 3 bytes : inc rsi
-48 FF C7    # 3 bytes : inc rdi
 
-# --- Loop Control ---
-E2 F2       # 2 bytes : loop back 14 bytes (3+3+3+3+2=14. 256-14=242/F2)
+
+# --- The "Double Guard" ---
+E2 EB       # 2 bytes : loop back 21 bytes (256 - 21 = 235/EB)
+
+
+48 89 F8    # 3 bytes : mov rax, rdi    (Current output pointer)
+4C 29 E8    # 3 bytes : sub rax, r13    (RAX = Final Size)
+48 89 C6    # 3 bytes : mov rsi, rax    (RSI = Size argument)
+4C 89 F7    # mov rdi, r14   (Move R14 back to RDI for ftruncate)
+6A 4D 58    # 3 bytes : push 77; pop rax (sys_ftruncate)
+0F 05       # 2 bytes : syscall
 
 
 6A 3C # push 60 (exit system call)

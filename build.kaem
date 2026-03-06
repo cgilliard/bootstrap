@@ -3,6 +3,6 @@
 ./bin/hex2 ./src/catm.hex2 ./bin/catm
 ./bin/catm ./tmp/M0.hex2 ./src/ELF.hex2 ./src/M0.hex2
 ./bin/hex2 ./tmp/M0.hex2 ./bin/M0
-./bin/M0 ./src/famcc.M1 ./tmp/famcc.hex2
-./bin/catm ./tmp/famcc_elf.hex2 ./src/ELF.hex2 ./tmp/famcc.hex2
-./bin/hex2 ./tmp/famcc_elf.hex2 ./bin/famcc
+./bin/M0 ./src/famc.M1 ./tmp/famc.hex2
+./bin/catm ./tmp/famc_elf.hex2 ./src/ELF.hex2 ./tmp/famc.hex2
+./bin/hex2 ./tmp/famc_elf.hex2 ./bin/famc

@@ -108,6 +108,19 @@ DEFINE mov_[rax],rdx       488910
 DEFINE mov_[rax+8],rdx     48895008
 DEFINE mov_[rax+16],rdx    48895010
 DEFINE add_rdx,rdi         4801FA
+DEFINE add_rdi,            4881C7
+DEFINE and_rdi,            4881E7
+DEFINE mov_rax,[rbx+16]    488B4310
+DEFINE mov_rdx,[rbx+8]     488B5308
+DEFINE mov_rcx,rax         4889C1
+DEFINE add_rcx,rdi         4801F9
+DEFINE cmp_rcx,rdx         4839D1
+DEFINE ja                  0F87
+DEFINE mov_[rbx+16],rcx    48894B10
+DEFINE mov_rbx,rax         4889C3
+DEFINE mov_r12,rax         4989C4
+DEFINE mov_rax,r12         4C89C0
+DEFINE mov_rbx,r12         4C89E3
 
 
 
@@ -241,13 +254,6 @@ jmp %write_num_loop
     add_rsp, %32
     ret
 
-:arena_str
-"
-value: '"
-
-:nlend
-"' "
-
 :arena_init
     mov_rdi, %1073741824
     call %map
@@ -258,25 +264,6 @@ value: '"
     add_rdx,rdi
     mov_[rax+8],rdx
     ret
-
-DEFINE add_rdi,            4881C7
-DEFINE and_rdi,            4881E7
-DEFINE mov_rax,[rbx+16]    488B4310
-DEFINE mov_rdx,[rbx+8]     488B5308
-DEFINE mov_rcx,rax         4889C1
-DEFINE add_rcx,rdi         4801F9
-DEFINE cmp_rcx,rdx         4839D1
-DEFINE ja                  0F87
-DEFINE mov_[rbx+16],rcx    48894B10
-DEFINE mov_rbx,rax         4889C3
-DEFINE mov_r12,rax         4989C4
-DEFINE mov_rax,r12         4C89C0
-DEFINE mov_rbx,r12	   4C89E3
-
-:str_curr
-"Current: "
-:str_end
-"End: "
 
 
 :arena_alloc
@@ -291,34 +278,12 @@ DEFINE mov_rbx,r12	   4C89E3
     add_rcx,rdi           # RCX = new_current
     
     cmp_rcx,rdx
-    ja %alloc_debug_panic  # If it fails, go to the debug printer
+    ja %alloc_panic 
     
     mov_[rbx+16],rcx      
     ret
 
-:alloc_debug_panic
-    # Save the three values to the stack to preserve them
-    push_rax               # [rsp+16] = current
-    push_rdx               # [rsp+8]  = end
-    push_rcx               # [rsp+0]  = new_current (the failing address)
-
-    # Print "Current: "
-    lea_rbx,[rip+offset] %str_curr
-    mov_rax, %2
-    call %write_str
-    pop_rdi                # Pop new_current into rdi
-    mov_rax, %2
-    call %write_num
-
-    # Print " End: "
-    lea_rbx,[rip+offset] %str_end
-    mov_rax, %2
-    call %write_str
-    pop_rdi                # Pop end into rdi
-    mov_rax, %2
-    call %write_num
-
-    # Final Panic
+:alloc_panic
     mov_rax, %1
     lea_rbx,[rip+offset] %alloc_failed_msg
     call %panic
@@ -335,11 +300,10 @@ DEFINE mov_rbx,r12	   4C89E3
     mov_rax, %1
 
     call %arena_init
-    mov_r12,rax         # Store the "Master" pointer here (Macro: 4989C4)
+    mov_r12,rax
 
     # First Allocation
-    mov_rbx,r12         # Use R12 to set RBX for the allocator
-    #mov_rbx,rax
+    mov_rbx,r12
     mov_rbx,r12
     mov_rdi, %1024
     call %arena_alloc
@@ -347,35 +311,35 @@ DEFINE mov_rbx,r12	   4C89E3
     # Print Result (RAX)
     mov_rdi,rax
     mov_rax, %1
-    call %write_num      # R12 is safe!
+    call %write_num
 
     mov_rax, %1
     lea_rbx,[rip+offset] %nl
     call %write_str
 
     # Second Allocation
-    mov_rbx,r12         # R12 still has the arena!
+    mov_rbx,r12
     mov_rdi, %2048
     call %arena_alloc
 
     # Print Result (RAX)
     mov_rdi,rax
     mov_rax, %1
-    call %write_num      # R12 is safe!
+    call %write_num
 
 mov_rax, %1
     lea_rbx,[rip+offset] %nl
     call %write_str
 
-    # Second Allocation
-    mov_rbx,r12         # R12 still has the arena!
+    # Third Allocation
+    mov_rbx,r12
     mov_rdi, %1024
     call %arena_alloc
 
     # Print Result (RAX)
     mov_rdi,rax
     mov_rax, %1
-    call %write_num      # R12 is safe!
+    call %write_num 
 
 
 
@@ -411,6 +375,20 @@ hello
 
 :alloc_failed_msg
 "memory allocaiton failed! Cannot continue."
+
+:str_curr
+"Current: "
+:str_end
+"End: "
+
+:arena_str
+"
+value: '"
+
+:nlend
+"' "
+
+
 
 
 :ELF_end

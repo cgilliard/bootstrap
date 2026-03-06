@@ -53,8 +53,8 @@ E5 00 00 00 00 00 00 00 ## p_memsz
 0F05                ; syscall         # Now open that damn file
 50                  ; push_rax
 4158                ; pop_r8          # file desc for mmap system call
-66 68 FF FF         ;                 # push 255 (as a 16-bit word)
-5E                  # pop rsi
+68 FF FF 00 00   # push 0x0000FFFF (32-bit)
+5E               # pop rsi
 6A 09               ; push syscall number
 58                  ; pop_rax
 31FF                # xor edi, edi (Clears 64-bit RDI in 2 bytes)
@@ -62,6 +62,46 @@ E5 00 00 00 00 00 00 00 ## p_memsz
 6A02 415A           # push 2; pop r10
 4531C9              # xor r9d, r9d (Clears 64-bit R9 in 3 bytes)
 0F05                ; mmap
+49 89 C4            # mov r12, rax 
+5F                  # Get output file name
+6A 02 58            # rax = 2 (open)
+6A 42 5E            # rsi = 2 (O_RDWR) <- Use 2 for writing!
+BA ED 01 00 00      # mov edx, 493     (0755 permissions - hex 0x1ED)
+0F 05               # syscall (RAX = output FD)
+50                  ; push_rax
+4158                ; pop_r8          # file desc for mmap system call
+48 89 C7            # mov rdi, rax     (FD into RDI)
+BE FF FF 00 00      # mov esi, 65535    (RESET THE SIZE!)
+48 89 F6            # mov rsi, rsi     (Use same 65535 from previous RSI)
+6A 4D 58            # rax = 77         (sys_ftruncate)
+0F 05               # syscall
+68 FF FF 00 00   # push 0x0000FFFF (32-bit)
+5E               # pop rsi
+6A 09               ; push syscall number
+58                  ; pop_rax
+31FF                # xor edi, edi (Clears 64-bit RDI in 2 bytes)
+6A03 5A             # push 1; pop rdx
+6A01 415A           # push 2; pop r10
+4531C9              # xor r9d, r9d (Clears 64-bit R9 in 3 bytes)
+0F05                ; mmap
+49 89 C5            # mov r13, rax 
+
+# --- Setup (Before the loop) ---
+4C 89 E6    # 3 bytes : mov rsi, r12      (Input Base)
+4C 89 EF    # 3 bytes : mov rdi, r13      (Output Base)
+6A 64       # 2 bytes : push 100          (Target Count)
+59          # 1 byte  : pop rcx           (RCX = 100)
+
+# --- Start of Loop (Target for E2) ---
+44 8A 06    # 3 bytes : mov r8b, [rsi]    (Read byte)
+44 88 07    # 3 bytes : mov [rdi], r8b    (Write byte)
+
+# --- Increments ---
+48 FF C6    # 3 bytes : inc rsi
+48 FF C7    # 3 bytes : inc rdi
+
+# --- Loop Control ---
+E2 F2       # 2 bytes : loop back 14 bytes (3+3+3+3+2=14. 256-14=242/F2)
 
 
 6A 3C # push 60 (exit system call)

@@ -102,10 +102,8 @@ BE FF FF 00 00      # mov esi, 65535    (RESET THE SIZE!)
 48 FF C6    # 3 bytes : inc rsi           (Advance input)
 48 FF C7    # 3 bytes : inc rdi           (Advance output)
 
-
-
 # --- The "Double Guard" ---
-E2 EB       # 2 bytes : loop back 21 bytes (256 - 21 = 235/EB)
+E2 ED       # 2 bytes : loop back 21 bytes (256 - 19 = 237/ED)
 
 
 48 89 F8    # 3 bytes : mov rax, rdi    (Current output pointer)

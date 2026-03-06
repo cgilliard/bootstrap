@@ -119,8 +119,11 @@ DEFINE ja                  0F87
 DEFINE mov_[rbx+16],rcx    48894B10
 DEFINE mov_rbx,rax         4889C3
 DEFINE mov_r12,rax         4989C4
+DEFINE mov_rdx,r12         4C89E2
+DEFINE mov_rdi,r12         4C89E7
 DEFINE mov_rax,r12         4C89C0
 DEFINE mov_rbx,r12         4C89E3
+DEFINE mov_r8,rdx          4989D0
 
 
 
@@ -176,20 +179,54 @@ DEFINE mov_rbx,r12         4C89E3
     ret
 
 :map
-    mov_rsi,rdi              # set passed in size to the value passed to mmap
-    mov_rax, %9              # mmap system call
-    mov_rdi, %0              # first arg NULL
-    mov_rdx, %3              # prot = PROT_READ | PROT_WRITE
-    mov_r10, %34             # flags = MAP_ANONYMOUS | MAP_PRIVATE
-    mov_r8, FFFFFFFF         # fd = -1
-    zero_r9                  # offset = 0
+    mov_rsi,rdi                        # set passed in size to the value passed to mmap
+    mov_rax, %9                        # mmap system call
+    mov_rdi, %0                        # first arg NULL
+    mov_rdx, %3                        # prot = PROT_READ | PROT_WRITE
+    mov_r10, %34                       # flags = MAP_ANONYMOUS | MAP_PRIVATE
+    mov_r8, FFFFFFFF                   # fd = -1
+    zero_r9                            # offset = 0
     syscall
-    test_rax,rax
-    jns %map_end
-    lea_rbx,[rip+offset] %map_failed
-    call %panic
+    test_rax,rax                       # check if you have a negative return value
+    jns %map_end                       # everything ok return
+    lea_rbx,[rip+offset] %map_failed   # setup panic message
+    call %panic                        # panic
 :map_end 
     ret
+
+:fmap_ro
+    mov_r8,rdx                         # set passed in fd to value passed to mmap
+    mov_rsi,rdi                        # set passed in size to the value passed to mmap
+    mov_rax, %9                        # mmap system call
+    mov_rdi, %0                        # first arg NULL
+    mov_rdx, %1                        # prot = PROT_READ
+    mov_r10, %2                        # flags = MAP_PRIVATE
+    zero_r9                            # offset = 0
+    syscall
+    test_rax,rax                       # check if you have a negative return value
+    jns %fmap_end                      # everything ok return
+    lea_rbx,[rip+offset] %map_failed   # setup panic message
+    call %panic                        # panic
+:fmap_end 
+    ret
+
+:fmap_rw
+    mov_r8,rdx                         # set passed in fd to value passed to mmap
+    mov_rsi,rdi                        # set passed in size to the value passed to mmap
+    mov_rax, %9                        # mmap system call
+    mov_rdi, %0                        # first arg NULL
+    mov_rdx, %1                        # prot = PROT_READ
+    mov_r10, %2                        # flags = MAP_PRIVATE
+    zero_r9                            # offset = 0
+    syscall
+    test_rax,rax                       # check if you have a negative return value
+    jns %fmap_rw_end                   # everything ok return
+    lea_rbx,[rip+offset] %map_failed   # setup panic message
+    call %panic                        # panic
+:fmap_rw_end
+    ret
+
+
 
 :write_str
     push_rax
@@ -288,74 +325,46 @@ jmp %write_num_loop
     lea_rbx,[rip+offset] %alloc_failed_msg
     call %panic
 
+#     mov_rsi,rdi                        # set passed in size to the value passed to mmap
+#    mov_rax, %9                        # mmap system call
+#    mov_rdi, %0                        # first arg NULL
+#    mov_rdx, %3                        # prot = PROT_READ | PROT_WRITE
+#    mov_r10, %34                       # flags = MAP_ANONYMOUS | MAP_PRIVATE
+#    mov_r8, FFFFFFFF                   # fd = -1
+#    zero_r9                            # offset = 0
     
 
 :main
-    sub_rsp, %32                  # allocate 32 bytes on stack
     cmp_rdi, %1
-    jg %args_ok
+    jg %argc_ok
     lea_rbx,[rip+offset] %usage   
     call %panic
-:args_ok
-    mov_rax, %1
 
-    call %arena_init
-    mov_r12,rax
+:argc_ok
+    mov_rax, %2                         # setup open system call
+    add_rsi, %8                         # point to argv[1]
+    mov_rdi,[rsi]                       # deref rsi
+    mov_rdx, %0                         # O_RDONLY
+    mov_rsi, %0                         # permissions=0
+    syscall
+    cmp_rax, %0
+    jg %open_ok
+    lea_rbx,[rip+offset] %file_open
+    call %panic
 
-    # First Allocation
-    mov_rbx,r12
-    mov_rbx,r12
-    mov_rdi, %1024
-    call %arena_alloc
-    
-    # Print Result (RAX)
+:open_ok
+    mov_r12,rax                         # save fd
+    mov_rdi,rax                         # our new fd
+    mov_rax, %8                         # setup lseek system call    
+    mov_rsi, %0                         # offset = 0
+    mov_rdx, %2                         # whence = SEEK_END
+    syscall
+
     mov_rdi,rax
-    mov_rax, %1
-    call %write_num
+    mov_rdx,r12
+    call %fmap_ro
 
-    mov_rax, %1
-    lea_rbx,[rip+offset] %nl
-    call %write_str
-
-    # Second Allocation
-    mov_rbx,r12
-    mov_rdi, %2048
-    call %arena_alloc
-
-    # Print Result (RAX)
-    mov_rdi,rax
-    mov_rax, %1
-    call %write_num
-
-mov_rax, %1
-    lea_rbx,[rip+offset] %nl
-    call %write_str
-
-    # Third Allocation
-    mov_rbx,r12
-    mov_rdi, %1024
-    call %arena_alloc
-
-    # Print Result (RAX)
-    mov_rdi,rax
-    mov_rax, %1
-    call %write_num 
-
-
-
-
-    lea_rbx,[rip+offset] %hello
-    mov_rax, %1
-    call %write_str
-    mov_rdi, %2048
-    call %map
-    mov_rsi,rsp                   # point rsi to the bottom of the stack
-    mov_rax, %47                  # set rax to 47 (our target value)
-    mov_rdx, %32                  # set the number of bytes to write to 32
-    call %memset                  # call memset
-    mov_rax, %0                   # zero rax to be sure
-    movzx_rax,byte[rsp+offset] %9 # set rax to the value in the 9th index to confirm
-    add_rsp, %32                  # reset stack ptr
+    mov_rax, %0                         # return 0 (success)
     ret
 
 :hello
@@ -369,6 +378,9 @@ hello
 
 :usage
 "Usage: famc <source_file>"
+
+:file_open
+"Could not open the file!"
 
 :map_failed
 "mmap failed! Cannot continue."

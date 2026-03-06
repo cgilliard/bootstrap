@@ -191,6 +191,11 @@ DEFINE je                 0F84
     add_rbx, %20
     mov_rax, %0
     movb[rbx],al
+    cmp_rdi, %0
+    jne %write_num_loop
+    sub_rbx, %1
+    add_rax, %48
+    movb[rbx],al
 :write_num_loop    
     cmp_rdi, %0
     je %write_num_end
@@ -219,7 +224,7 @@ jmp %write_num_loop
     call %panic
 :args_ok
     mov_rax, %1
-    mov_rdi, %123
+    mov_rdi, %1
     call %write_num
 
 

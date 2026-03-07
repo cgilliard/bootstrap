@@ -95,11 +95,25 @@ BE FF FF 00 00      # mov esi, 65535    (RESET THE SIZE!)
 B9 00 40 00 00 # push 16384 into RCX
 41 B9 00 00 00 00    # mov r9d, 0
 41 BA 00 00 00 00    # mov r10d, 0
+41 BB 00 00 00 00    # mov r11d, 0
 
 # --- Start of Loop (Offset 0) --- 8 bytes total
 44 8A 06    # 3 bytes : mov r8b, [rsi]    (Target for Jumps)
 45 84 C0    # 3 bytes : test r8b, r8b     (Null check)
-74 35       # 2 bytes :         exit
+74 4E       # 2 bytes :         exit
+
+# block: 25 bytes total
+41 80 F8 0A # r8_cmp, '\n'
+75 03 # jne skip_nl
+41 B3 00 # mov_r11, 0
+#skip_nl:
+45 84 DB # r11_cmp, 1
+75 3B # je next_byte
+41 80 F8 23 # r8b_cmp '#'
+75 05 # jne skip_comment
+41 B3 01 # mov_r11, 1
+EB 30 # jmp next_byte
+#skip_comment:
 
 # block: 20 bytes total
 41 80 E8 30       # 4 bytes : sub r8b, 48       ( '0' -> 0 )
@@ -130,7 +144,7 @@ EB 09             # 2 bytes : jmp :next_byte
 
 #next_byte: 5 bytes total
 48 FF C6    # 3 bytes : inc rsi           (Advance input)
-E2 C3       # 2 bytes : to start loop
+E2 AA       # 2 bytes : to start loop
 #exit:
 
 

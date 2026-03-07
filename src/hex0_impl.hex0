@@ -97,19 +97,24 @@ B9 00 40 00 00 # push 16384 into RCX
 # --- Start of Loop (Offset 0) ---
 44 8A 06    # 3 bytes : mov r8b, [rsi]    (Target for Jumps)
 45 84 C0    # 3 bytes : test r8b, r8b     (Null check)
-74 15       # 2 bytes :         exit
+74 1F       # 2 bytes :         exit
 
 41 80 E8 30       # 4 bytes : sub r8b, 48       ( '0' -> 0 )
 41 80 F8 09       # 4 bytes : cmp r8b, 9        ( Is it 0-9? )
-77 06             # skip anything not 0-9. to next_byte
+76 0A             # test if < 10 goto write:
 
+41 80 E8 07       # 4 bytes : sub r8b, 7 
+41 80 F8 0F       # 4 bytes : cmp r8b, 15
+77 06                 # greater than jump to next_byte:
+
+#write:
 # --- Write Logic (Target for jne +5) ---
 44 88 07    # 3 bytes : mov [rdi], r8b    (Commit to output)
 48 FF C7    # 3 bytes : inc rdi           (Advance output)
 
 #next_byte:
 48 FF C6    # 3 bytes : inc rsi           (Advance input)
-E2 E3       # 2 bytes : loop back 30 bytes (256-30=E2)
+E2 D9       # 2 bytes : loop back 30 bytes (256-30=E2)
 #exit:
 
 

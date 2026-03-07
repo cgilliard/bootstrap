@@ -93,28 +93,44 @@ BE FF FF 00 00      # mov esi, 65535    (RESET THE SIZE!)
 #6A 64       # 2 bytes : push 100          (Target Count)
 #59          # 1 byte  : pop rcx           (RCX = 100)
 B9 00 40 00 00 # push 16384 into RCX
+45 31 C9          # xor r9d, r9d   (R14 = 0)
+45 31 D2          # xor r10d, r10d   (R10 = 0)
 
-# --- Start of Loop (Offset 0) ---
+# --- Start of Loop (Offset 0) --- 8 bytes total
 44 8A 06    # 3 bytes : mov r8b, [rsi]    (Target for Jumps)
 45 84 C0    # 3 bytes : test r8b, r8b     (Null check)
-74 1F       # 2 bytes :         exit
+74 35       # 2 bytes :         exit
 
+# block: 20 bytes total
 41 80 E8 30       # 4 bytes : sub r8b, 48       ( '0' -> 0 )
 41 80 F8 09       # 4 bytes : cmp r8b, 9        ( Is it 0-9? )
 76 0A             # test if < 10 goto write:
 
 41 80 E8 07       # 4 bytes : sub r8b, 7 
 41 80 F8 0F       # 4 bytes : cmp r8b, 15
-77 06                 # greater than jump to next_byte:
+77 1C                 # greater than jump to next_byte:
 
-#write:
-# --- Write Logic (Target for jne +5) ---
+# write:
+# classification: 10 total bytes
+49 FF C1          # 3 bytes : inc r9
+48 89 C8          # 3 bytes : mov rax, r9
+A8 01             # 2 bytes : test al, 1
+74 09             # 2 bytes : jz :output 
+
+# --- High Nibble (Odd) --- 9 bytes total
+44 89 C2          # 3 bytes : mov r10b, r8b
+41 C1 E2 04       # 4 bytes : shl r10b, 4
+EB 09             # 2 bytes : jmp :next_byte 
+
+# --- Low Nibble (Even) --- 9 bytes total
+#:output
+45 08 D0    # 3 bytes : or r8b, r10b
 44 88 07    # 3 bytes : mov [rdi], r8b    (Commit to output)
 48 FF C7    # 3 bytes : inc rdi           (Advance output)
 
-#next_byte:
+#next_byte: 5 bytes total
 48 FF C6    # 3 bytes : inc rsi           (Advance input)
-E2 D9       # 2 bytes : loop back 30 bytes (256-30=E2)
+E2 C3       # 2 bytes : to start loop
 #exit:
 
 

@@ -43,25 +43,25 @@ E5 00 00 00 00 00 00 00 ## p_memsz
 
 01 00 00 00 00 00 00 00 ## Required alignment
 
-58                  ; pop_rax         # Get the number of arguments
-5F                  ; pop_rdi         # Get the program name
-5F                  ; pop_rdi         # Get the actual input name
-31F6                ; xor_esi,esi     # prepare read_only, rsi = 0
-6A 02               ; push !2         # prepare syscall number
-58                  ; pop_rax         # the syscall number for open()
-99                  ; cdq             # Extra sure, rdx = 0
-0F05                ; syscall         # Now open that damn file
-50                  ; push_rax
-4158                ; pop_r8          # file desc for mmap system call
+58                  # pop_rax          Get the number of arguments
+5F                  # pop_rdi         # Get the program name
+5F                  # pop_rdi         # Get the actual input name
+31F6                # xor_esi,esi     # prepare read_only, rsi = 0
+6A 02               # push !2         # prepare syscall number
+58                  # pop_rax         # the syscall number for open()
+99                  # cdq             # Extra sure, rdx = 0
+0F05                # syscall         # Now open that damn file
+50                  # push_rax
+4158                # pop_r8          # file desc for mmap system call
 68 FF FF 00 00   # push 0x0000FFFF (32-bit)
 5E               # pop rsi
-6A 09               ; push syscall number
-58                  ; pop_rax
+6A 09               # push syscall number
+58                  # pop_rax
 31FF                # xor edi, edi (Clears 64-bit RDI in 2 bytes)
 6A01 5A             # push 1; pop rdx
 6A02 415A           # push 2; pop r10
 4531C9              # xor r9d, r9d (Clears 64-bit R9 in 3 bytes)
-0F05                ; mmap
+0F05                # mmap
 49 89 C4            # mov r12, rax 
 5F                  # Get output file name
 6A 02 58            # rax = 2 (open)
@@ -69,8 +69,8 @@ E5 00 00 00 00 00 00 00 ## p_memsz
 BA ED 01 00 00      # mov edx, 493     (0755 permissions - hex 0x1ED)
 0F 05               # syscall (RAX = output FD)
 49 89 C6    # mov r14, rax   (Store FD in R14, it's safe there)
-50                  ; push_rax
-4158                ; pop_r8          # file desc for mmap system call
+50                  # push_rax
+4158                # pop_r8          # file desc for mmap system call
 48 89 C7            # mov rdi, rax     (FD into RDI)
 BE FF FF 00 00      # mov esi, 65535    (RESET THE SIZE!)
 48 89 F6            # mov rsi, rsi     (Use same 65535 from previous RSI)
@@ -78,13 +78,13 @@ BE FF FF 00 00      # mov esi, 65535    (RESET THE SIZE!)
 0F 05               # syscall
 68 FF FF 00 00   # push 0x0000FFFF (32-bit)
 5E               # pop rsi
-6A 09               ; push syscall number
-58                  ; pop_rax
+6A 09               # push syscall number
+58                  # pop_rax
 31FF                # xor edi, edi (Clears 64-bit RDI in 2 bytes)
 6A03 5A             # push 1; pop rdx
 6A01 415A           # push 2; pop r10
 4531C9              # xor r9d, r9d (Clears 64-bit R9 in 3 bytes)
-0F05                ; mmap
+0F05                # mmap
 49 89 C5            # mov r13, rax 
 
 # --- Setup (Before the loop) ---

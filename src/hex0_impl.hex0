@@ -93,8 +93,8 @@ BE FF FF 00 00      # mov esi, 65535    (RESET THE SIZE!)
 #6A 64       # 2 bytes : push 100          (Target Count)
 #59          # 1 byte  : pop rcx           (RCX = 100)
 B9 00 40 00 00 # push 16384 into RCX
-45 31 C9          # xor r9d, r9d   (R14 = 0)
-45 31 D2          # xor r10d, r10d   (R10 = 0)
+41 B9 00 00 00 00    # mov r9d, 0
+41 BA 00 00 00 00    # mov r10d, 0
 
 # --- Start of Loop (Offset 0) --- 8 bytes total
 44 8A 06    # 3 bytes : mov r8b, [rsi]    (Target for Jumps)
@@ -113,12 +113,12 @@ B9 00 40 00 00 # push 16384 into RCX
 # write:
 # classification: 10 total bytes
 49 FF C1          # 3 bytes : inc r9
-48 89 C8          # 3 bytes : mov rax, r9
-A8 01             # 2 bytes : test al, 1
-74 09             # 2 bytes : jz :output 
+4C 89 C8          # 3 bytes : mov rax, r9
+A8 01             # 2 bytes : test al, 1 
+74 09             # 2 bytes : jz :output if ((rax & 1) == 0) goto output;
 
 # --- High Nibble (Odd) --- 9 bytes total
-44 89 C2          # 3 bytes : mov r10b, r8b
+45 89 C2          # 3 bytes : mov r10b, r8b
 41 C1 E2 04       # 4 bytes : shl r10b, 4
 EB 09             # 2 bytes : jmp :next_byte 
 

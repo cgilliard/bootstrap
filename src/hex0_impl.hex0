@@ -90,28 +90,45 @@ BE FF FF 00 00      # mov esi, 65535    (RESET THE SIZE!)
 # --- Setup (Before the loop) ---
 4C 89 E6    # 3 bytes : mov rsi, r12      (Input Base)
 4C 89 EF    # 3 bytes : mov rdi, r13      (Output Base)
-#6A 64       # 2 bytes : push 100          (Target Count)
-#59          # 1 byte  : pop rcx           (RCX = 100)
 B9 00 40 00 00 # push 16384 into RCX
+6A FF             # push -1
+41 5A             # pop r10 
 
-# --- Start of Loop (Offset 0) ---
-44 8A 06    # 3 bytes : mov r8b, [rsi]    (Target for Jumps)
-45 84 C0    # 3 bytes : test r8b, r8b     (Null check)
-74 16       # 2 bytes : je +18            (Jump to EXIT/CLIP)
+#start_loop:
+44 8A 06          # mov r8b, [rsi]  (Target for Jumps)
+45 84 C0          # test r8b, r8b   (Null Check)
+74 32              # je %CLIP_AND_EXIT
 
-# --- NEW: Space Check ---
-41 80 F8 20 # 4 bytes : cmp r8b, 32       (Is it a space?)
-75 05       # 2 bytes : jne +5            (If NOT space, continue to write)
-48 FF C6    # 3 bytes : inc rsi           (Is space: advance input)
-EB ED       # 2 bytes : jmp -19           (Jump back to 'mov r8b' [256-19=ED])
+# --- The Filter (:find_hex) ---
+41 80 E8 30       # 4 bytes : sub r8b, 48       ( '0' becomes 0 )
+72 27              # 2 bytes : jb :next_input    ( If < 0, it was a space/etc )
+41 80 F8 09       # 4 bytes : cmp r8b, 9        ( Is it 0-9? )
+76 0A              # 2 bytes : jbe :write        ( If yes, jump to the toggle logic )
 
-# --- Write Logic (Target for jne +5) ---
-44 88 07    # 3 bytes : mov [rdi], r8b    (Commit to output)
-48 FF C6    # 3 bytes : inc rsi           (Advance input)
-48 FF C7    # 3 bytes : inc rdi           (Advance output)
+# --- The "Gap" Trick ---
+41 80 E8 07       # 4 bytes : sub r8b, 7        ( Bridge gap: 'A'(17) - 7 = 10 )
+41 80 F8 0F       # 4 bytes : cmp r8b, 15       ( Is it A-F? )
+77 17              # 2 bytes : ja :next_input    ( If > 15, ignore it )
 
-# --- Loop Guard ---
-E2 E2       # 2 bytes : loop back 30 bytes (256-30=E2)
+# :write
+45 85 D2          # 3 bytes : test r10d, r10d   (Check Toggle)
+78 0B             # 2 bytes : js :high_nibble   (If negative, it's digit 1)
+
+# --- Low Nibble (Second Digit) ---
+44 08 07          # 3 bytes : orb [rdi], r8b    (Merge into memory)
+48 FF C7          # 3 bytes : inc rdi           (Done with this byte)
+EB 07             # 2 bytes : jmp :toggle       (Jump to flip state)
+
+# :high_nibble
+41 C1 E0 04       # 4 bytes : shl r8b, 4        (Move 0x04 -> 0x40)
+44 88 07          # 3 bytes : mov [rdi], r8b    (Paint high bits)
+
+# :toggle
+41 F7 D2          # 3 bytes : not r10d          (Flip -1 <-> 0)
+
+# :next_input
+48 FF C6          # 3 bytes : inc rsi           (Next input byte)
+E2 C6              # 2 bytes : loop back         (Calculate for start of loop)
 
 
 48 89 F8    # 3 bytes : mov rax, rdi    (Current output pointer)

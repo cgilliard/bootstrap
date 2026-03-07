@@ -95,6 +95,7 @@ B9 00 40 00 00 # push 16384 into RCX
 41 5A             # pop r10 
 
 #start_loop:
+45 31 C0          # zero r8 (3 bytes)
 44 8A 06          # mov r8b, [rsi]  (Target for Jumps)
 45 84 C0          # test r8b, r8b   (Null Check)
 74 32              # je %CLIP_AND_EXIT
@@ -128,7 +129,7 @@ EB 07             # 2 bytes : jmp :toggle       (Jump to flip state)
 
 # :next_input
 48 FF C6          # 3 bytes : inc rsi           (Next input byte)
-E2 C6              # 2 bytes : loop back         (Calculate for start of loop)
+E2 C3              # 2 bytes : loop back         (Calculate for start of loop)
 
 
 48 89 F8    # 3 bytes : mov rax, rdi    (Current output pointer)
